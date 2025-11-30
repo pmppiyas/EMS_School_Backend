@@ -1,0 +1,26 @@
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum Class {
+  PLAYGROUP
+  NURSERY
+  STANDARD1
+  STANDARD2
+  STANDARD3
+  STANDARD4
+  STANDARD5
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
