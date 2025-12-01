@@ -7,7 +7,7 @@ model Teacher {
   address     String?
   dateOfBirth DateTime?
   designation String?
-  gender      Gender
+  gender      Gender?
   userId      String    @unique
   user        User      @relation(fields: [userId], references: [id])
   createdAt   DateTime  @default(now())

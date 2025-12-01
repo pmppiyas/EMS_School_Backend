@@ -8,7 +8,7 @@ export interface createStudentInput {
   dateOfBirth?: string;
   class: Class;
   roll: string;
-  gender?: "MALE" | "FEMALE";
+  gender?: Gender;
 }
 
 export interface createAdminInput {
@@ -18,9 +18,23 @@ export interface createAdminInput {
   password: string;
   phoneNumber?: string;
   address?: string;
-  gender?: "MALE" | "FEMALE";
+  gender?: Gender;
   designation?: string;
 }
+
+export interface createTeacherInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
+  address?: string;
+  dateOfBirth?: string;
+  designation?: string;
+  gender: Gender;
+}
+
+export type Gender = "MALE" | "FEMALE";
 
 export enum Role {
   ADMIN = "ADMIN",

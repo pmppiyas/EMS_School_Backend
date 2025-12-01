@@ -7,6 +7,7 @@ import { Role } from "./user.interface";
 import {
   createAdminZodSchema,
   createStudentZodSchema,
+  createTeacherZodSchema,
 } from "./user.validation";
 const upload = multer();
 
@@ -26,6 +27,13 @@ router.post(
   upload.none(),
   validateRequest(createAdminZodSchema),
   UserController.createAdmin
+);
+
+router.post(
+  "/create_teacher",
+  upload.none(),
+  validateRequest(createTeacherZodSchema),
+  UserController.createTeacher
 );
 
 export const userRoutes = router;
