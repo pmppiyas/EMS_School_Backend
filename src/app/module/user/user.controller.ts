@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
+import { UserStatus } from "./user.interface";
 import { UserServices } from "./user.services";
 
 const getAllUser = catchAsync(
@@ -56,9 +57,26 @@ const createTeacher = catchAsync(
   }
 );
 
+const changeUserStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserServices.changeUserStatus(
+      req.params.id,
+      req.params.status.toUpperCase() as UserStatus
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `User ${req.params.status} successfully`,
+      data: result,
+    });
+  }
+);
+
 export const UserController = {
   getAllUser,
   createStudent,
   createAdmin,
   createTeacher,
+  changeUserStatus,
 };

@@ -1,12 +1,17 @@
 import bcrypt from "bcryptjs";
 import { Request } from "express";
+import { StatusCodes } from "http-status-codes";
 import { env } from "../../config/env";
 import prisma from "../../config/prisma";
+import { AppError } from "../../utils/appError";
+
 import {
   createAdminInput,
   createStudentInput,
   createTeacherInput,
+  UserStatus,
 } from "./user.interface";
+
 const getAllUser = async () => {
   const user = await prisma.user.findMany();
   return user;
@@ -113,9 +118,40 @@ const createTeacher = async (req: Request) => {
   });
   return result;
 };
+
+const changeUserStatus = async (id: string, status: UserStatus) => {
+  if (!status) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Status is required");
+  }
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+  if (user.status === status) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      `User's status is already ${status}`
+    );
+  }
+
+  if (user.status === UserStatus.SUSPENDED) {
+    throw new AppError(StatusCodes.NOT_ACCEPTABLE, "User is already suspended");
+  }
+
+  const updatedStatus = await prisma.user.update({
+    where: { id },
+    data: {
+      status: status,
+    },
+  });
+
+  return updatedStatus;
+};
 export const UserServices = {
   getAllUser,
   createStudent,
   createAdmin,
   createTeacher,
+  changeUserStatus,
 };

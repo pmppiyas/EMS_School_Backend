@@ -42,6 +42,13 @@ export enum Role {
   STUDENT = "STUDENT",
 }
 
+export enum UserStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  DELETED = "DELETED",
+  SUSPENDED = "SUSPENDED",
+}
+
 export enum Class {
   PLAYGROUP = "PLAYGROUP",
   NURSERY = "NURSERY",

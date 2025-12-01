@@ -1,13 +1,12 @@
 import { Router } from "express";
 import multer from "multer";
-import { checkAuth } from "../../middleware/checkAuth";
 import { validateRequest } from "../../middleware/validateRequest";
 import { UserController } from "./user.controller";
-import { Role } from "./user.interface";
 import {
   createAdminZodSchema,
   createStudentZodSchema,
   createTeacherZodSchema,
+  userStatusChangeValidation,
 } from "./user.validation";
 const upload = multer();
 
@@ -34,6 +33,12 @@ router.post(
   upload.none(),
   validateRequest(createTeacherZodSchema),
   UserController.createTeacher
+);
+
+router.put(
+  "/:id/:status",
+  validateRequest(userStatusChangeValidation),
+  UserController.changeUserStatus
 );
 
 export const userRoutes = router;

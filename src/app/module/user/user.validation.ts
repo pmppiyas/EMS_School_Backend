@@ -42,3 +42,12 @@ export const createTeacherZodSchema = zod.object({
     gender: zod.enum(["MALE", "FEMALE"]),
   }),
 });
+
+export const userStatusChangeValidation = zod.object({
+  params: zod.object({
+    id: zod.uuid({ message: "Invalid user ID format" }),
+    status: zod.enum(["ACTIVE", "INACTIVE", "DELETED", "SUSPENDED"], {
+      message: "Status must be either ACTIVE or INACTIVE or  SUSPENDED",
+    }),
+  }),
+});
