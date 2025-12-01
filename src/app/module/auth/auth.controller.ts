@@ -71,8 +71,33 @@ const logout = catchAsync(
   }
 );
 
+const refreshToken = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { refreshToken } = req.cookies;
+
+    const result = await AuthServices.refreshToken(refreshToken);
+
+    res.cookie("accessToken", result.accessToken, {
+      secure: true,
+      httpOnly: true,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60,
+    });
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Refreash token retrieved successfully",
+      data: {
+        needPasswordChange: result.needPasswordChange,
+      },
+    });
+  }
+);
+
 export const AuthController = {
   crdLogin,
   getMe,
   logout,
+  refreshToken,
 };

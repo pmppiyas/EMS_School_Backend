@@ -70,7 +70,36 @@ const getMe = async (session: any) => {
   return user;
 };
 
+const refreshToken = async (token: string) => {
+  let decodedData;
+
+  try {
+    decodedData = verifyToken(token);
+  } catch (err) {
+    throw new AppError(StatusCodes.FORBIDDEN, "You are not authorized");
+  }
+
+  const user = await prisma.user.findFirstOrThrow({
+    where: {
+      email: decodedData.email,
+      status: {
+        not: UserStatus.DELETED,
+      },
+    },
+  });
+
+  const tokenGen = jwtTokenGen({
+    email: user.email,
+    role: user.role,
+  });
+
+  return {
+    accessToken: (await tokenGen).accessToken,
+    needPasswordChange: user.needPasswordChange,
+  };
+};
 export const AuthServices = {
   crdLogin,
   getMe,
+  refreshToken,
 };
