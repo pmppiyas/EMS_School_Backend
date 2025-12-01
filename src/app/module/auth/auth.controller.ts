@@ -35,6 +35,19 @@ const crdLogin = catchAsync(
   }
 );
 
+const getMe = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userSession = req.cookies;
+    const result = await AuthServices.getMe(userSession);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Self data retrived successfully",
+      data: result,
+    });
+  }
+);
 export const AuthController = {
   crdLogin,
+  getMe,
 };
