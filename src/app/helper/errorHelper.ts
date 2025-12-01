@@ -37,7 +37,7 @@ export const handleDuplicateError = (error: any) => {
 };
 
 // 📦 Zod Validation Error Handler
-export const handleZodValidatonError = (error: ZodError) => {
+export const handleZodValidatonError = (error: any) => {
   resetState();
 
   const errors = error.issues ?? [];
