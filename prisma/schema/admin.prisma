@@ -5,7 +5,7 @@ model Admin {
   email       String   @unique
   phoneNumber String?
   address     String?
-  gender      Gender
+  gender      Gender?
   designation String?
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])

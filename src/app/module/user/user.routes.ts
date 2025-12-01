@@ -4,7 +4,10 @@ import { checkAuth } from "../../middleware/checkAuth";
 import { validateRequest } from "../../middleware/validateRequest";
 import { UserController } from "./user.controller";
 import { Role } from "./user.interface";
-import { createStudentZodSchema } from "./user.validation";
+import {
+  createAdminZodSchema,
+  createStudentZodSchema,
+} from "./user.validation";
 const upload = multer();
 
 const router = Router();
@@ -16,6 +19,13 @@ router.post(
   upload.none(),
   validateRequest(createStudentZodSchema),
   UserController.createStudent
+);
+
+router.post(
+  "/create_admin",
+  upload.none(),
+  validateRequest(createAdminZodSchema),
+  UserController.createAdmin
 );
 
 export const userRoutes = router;
