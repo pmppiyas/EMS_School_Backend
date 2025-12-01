@@ -47,7 +47,32 @@ const getMe = catchAsync(
     });
   }
 );
+
+const logout = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    res.clearCookie("accessToken", {
+      secure: true,
+      httpOnly: true,
+      sameSite: "none",
+    });
+
+    res.clearCookie("refreshToken", {
+      secure: true,
+      httpOnly: true,
+      sameSite: "none",
+    });
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Logged out successfully",
+      data: null,
+    });
+  }
+);
+
 export const AuthController = {
   crdLogin,
   getMe,
+  logout,
 };
