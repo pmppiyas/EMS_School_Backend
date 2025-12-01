@@ -1,36 +1,17 @@
-import { Router } from "express";
 import * as zod from "zod";
-import { userRoutes } from "../module/user/user.routes";
+import { Class } from "./user.interface";
 
-const router = Router();
-
-interface routerArgs {
-  path: string;
-  route: Router;
-}
-
-const allRoutes: routerArgs[] = [
-  {
-    path: "/user",
-    route: userRoutes,
-  },
-];
-
-allRoutes.forEach((route) => {
-  router.use(route.path, route.route);
-});
-export default router;
 export const createStudentZodSchema = zod.object({
   body: zod.object({
     firstName: zod.string().min(1, "First name is required"),
     lastName: zod.string().min(1, "Last name is required"),
     email: zod.string().email("Invalid email address"),
+    password: zod.string().min(6, "Password must be at least 6 characters"),
     phoneNumber: zod.string().optional(),
     address: zod.string().optional(),
     dateOfBirth: zod.string().datetime().optional(),
-    class: zod.string().min(1, "Class is required"),
+    class: zod.nativeEnum(Class),
     roll: zod.string().min(1, "Roll is required"),
     gender: zod.enum(["MALE", "FEMALE"]),
-    userId: zod.string().uuid("Invalid userId format"),
   }),
 });

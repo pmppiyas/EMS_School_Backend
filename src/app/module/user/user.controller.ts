@@ -17,6 +17,20 @@ const getAllUser = catchAsync(
   }
 );
 
+const createStudent = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserServices.createStudent(req);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.CREATED,
+      message: "Student create successfully",
+      data: result,
+    });
+  }
+);
+
 export const UserController = {
   getAllUser,
+  createStudent,
 };
