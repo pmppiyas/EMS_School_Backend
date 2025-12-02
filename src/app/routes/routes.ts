@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as zod from "zod";
 import { authRoutes } from "../module/auth/auth.routes";
 import { classRouter } from "../module/class/class.routes";
+import { subjectRouter } from "../module/subject/subject.routes";
 import { userRoutes } from "../module/user/user.routes";
 
 const router = Router();
@@ -23,6 +24,10 @@ const allRoutes: routerArgs[] = [
   {
     path: "/class",
     route: classRouter,
+  },
+  {
+    path: "/subject",
+    route: subjectRouter,
   },
 ];
 

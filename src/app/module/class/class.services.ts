@@ -37,9 +37,10 @@ const deleteClass = async (id: string) => {
   if (!isExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "Class not found");
   }
-  return await prisma.class.delete({
+  const result = await prisma.class.delete({
     where: { id },
   });
+  return result.name;
 };
 
 const editClass = async (id: string, name: string) => {

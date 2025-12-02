@@ -2,37 +2,50 @@ import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
-import { ClassServices } from "./class.services";
+import { SubjectServices } from "./subject.services";
 
-const createClass = catchAsync(
+const createSubject = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ClassServices.createClass(req.body.name);
+    const result = await SubjectServices.createSubject(req.body);
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: `Class created successfully`,
+      message: `Subject added successfully`,
       data: result,
     });
   }
 );
 
-const getClasses = catchAsync(
+const getAllSubjects = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ClassServices.getClasses();
+    const result = await SubjectServices.getAllSubjects();
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: `All class retrieved successfully`,
+      message: `All subjects successfully`,
       data: result,
     });
   }
 );
 
-const deleteClass = catchAsync(
+const editSubject = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ClassServices.deleteClass(req.params.id);
+    const result = await SubjectServices.editSubject(req.params.id, req.body);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Subject edited successfully`,
+      data: result,
+    });
+  }
+);
+
+const deleteSubject = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await SubjectServices.deleteSubject(req.params.id);
 
     sendResponse(res, {
       success: true,
@@ -43,21 +56,9 @@ const deleteClass = catchAsync(
   }
 );
 
-const editClass = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ClassServices.editClass(req.params.id, req.body.name);
-
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-      message: `Class edited successfully`,
-      data: result,
-    });
-  }
-);
-export const ClassController = {
-  createClass,
-  getClasses,
-  deleteClass,
-  editClass,
+export const SubjectController = {
+  createSubject,
+  getAllSubjects,
+  editSubject,
+  deleteSubject,
 };
