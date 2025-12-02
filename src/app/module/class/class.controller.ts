@@ -19,6 +19,47 @@ const createClass = catchAsync(
   }
 );
 
+const getClasses = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ClassServices.getClasses();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `All class retrieved successfully`,
+      data: result,
+    });
+  }
+);
+
+const deleteClass = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ClassServices.deleteClass(req.params.id);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Class deleted successfully`,
+      data: result,
+    });
+  }
+);
+
+const editClass = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ClassServices.editClass(req.params.id, req.body.name);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Class eidted successfully`,
+      data: result,
+    });
+  }
+);
 export const ClassController = {
   createClass,
+  getClasses,
+  deleteClass,
+  editClass,
 };
