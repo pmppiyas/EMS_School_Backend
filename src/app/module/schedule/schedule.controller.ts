@@ -17,6 +17,19 @@ const assignClassSchedule = catchAsync(
   }
 );
 
+const getAllSchedules = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ScheduleServices.getAllSchedules();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Schedule created successfully",
+      data: result,
+    });
+  }
+);
 export const ScheduleController = {
   assignClassSchedule,
+  getAllSchedules,
 };
