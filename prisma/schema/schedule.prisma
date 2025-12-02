@@ -1,8 +1,6 @@
 model ClassSchedule {
-  id        String   @id @default(uuid())
-  day       String
-  startTime DateTime
-  endTime   DateTime
+  id  String @id @default(uuid())
+  day String
 
   classId String
   class   Class  @relation(fields: [classId], references: [id])
@@ -10,10 +8,11 @@ model ClassSchedule {
   subjectId String
   subject   Subject @relation(fields: [subjectId], references: [id])
 
-  teacherId   String
-  teacher     Teacher    @relation(fields: [teacherId], references: [id])
-  classTime   ClassTime? @relation(fields: [classTimeId], references: [id])
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+
   classTimeId String?
+  classTime   ClassTime? @relation(fields: [classTimeId], references: [id])
 }
 
 model ClassTime {
