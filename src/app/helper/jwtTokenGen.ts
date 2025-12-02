@@ -1,9 +1,13 @@
 import jwt, { SignOptions } from "jsonwebtoken";
 import { env } from "../config/env";
 
-export const jwtTokenGen = async (payload: { email: string; role: string }) => {
+export const jwtTokenGen = async (payload: {
+  id: string;
+  email: string;
+  role: string;
+}) => {
   const accessToken = jwt.sign(
-    { email: payload.email, role: payload.role },
+    { id: payload.id, email: payload.email, role: payload.role },
     env.JWT_SECRET,
     {
       algorithm: "HS256",

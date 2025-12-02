@@ -1,3 +1,9 @@
+export interface IUser {
+  id: string;
+  email: string;
+  role: string;
+}
+
 export interface createStudentInput {
   firstName: string;
   lastName: string;

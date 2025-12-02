@@ -27,7 +27,11 @@ const crdLogin = async (payload: ILoginPayload) => {
     throw new AppError(StatusCodes.NOT_ACCEPTABLE, "This password is wrong");
   }
 
-  const { accessToken, refreshToken } = await jwtTokenGen(user);
+  const { accessToken, refreshToken } = await jwtTokenGen({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  });
 
   return {
     accessToken,
@@ -89,6 +93,7 @@ const refreshToken = async (token: string) => {
   });
 
   const tokenGen = jwtTokenGen({
+    id: user.id,
     email: user.email,
     role: user.role,
   });

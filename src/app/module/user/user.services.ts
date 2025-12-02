@@ -99,6 +99,7 @@ const createTeacher = async (req: Request) => {
       data: {
         email: body.email,
         password: hashPassword,
+        role: "TEACHER",
       },
     });
 
