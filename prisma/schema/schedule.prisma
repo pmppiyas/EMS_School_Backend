@@ -18,6 +18,7 @@ model ClassSchedule {
 
 model ClassTime {
   id        String          @id @default(uuid())
+  period    String
   startTime String
   endTime   String
   schedules ClassSchedule[]

@@ -56,9 +56,42 @@ const editClass = async (id: string, name: string) => {
   });
 };
 
+const addClassTime = async (times: any[]) => {
+  return await prisma.$transaction(async (prisma) => {
+    for (const time of times) {
+      await prisma.classTime.deleteMany({
+        where: {
+          period: time.period,
+        },
+      });
+
+      await prisma.classTime.create({
+        data: {
+          period: time.period,
+          startTime: time.startTime,
+          endTime: time.endTime,
+        },
+      });
+    }
+  });
+};
+
+const getClassTime = async () => {
+  const classes = await prisma.classTime.findMany();
+  const count = await prisma.classTime.count();
+  return {
+    classes,
+    meta: {
+      tota: count,
+    },
+  };
+};
+
 export const ClassServices = {
   createClass,
   getClasses,
   deleteClass,
   editClass,
+  addClassTime,
+  getClassTime,
 };

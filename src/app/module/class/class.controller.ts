@@ -55,9 +55,38 @@ const editClass = catchAsync(
     });
   }
 );
+
+const addClassTime = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ClassServices.addClassTime(req.body);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Class time added successfully`,
+      data: result,
+    });
+  }
+);
+
+const getClassTime = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ClassServices.getClassTime();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `All class times retrieved successfully`,
+      data: result,
+    });
+  }
+);
+
 export const ClassController = {
   createClass,
   getClasses,
   deleteClass,
   editClass,
+  addClassTime,
+  getClassTime,
 };
