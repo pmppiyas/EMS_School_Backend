@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as zod from "zod";
 import { authRoutes } from "../module/auth/auth.routes";
+import { classRouter } from "../module/class/class.routes";
 import { userRoutes } from "../module/user/user.routes";
 
 const router = Router();
@@ -18,6 +19,10 @@ const allRoutes: routerArgs[] = [
   {
     path: "/auth",
     route: authRoutes,
+  },
+  {
+    path: "/class",
+    route: classRouter,
   },
 ];
 

@@ -1,7 +1,9 @@
 import { Router } from "express";
 import multer from "multer";
+import { checkAuth } from "../../middleware/checkAuth";
 import { validateRequest } from "../../middleware/validateRequest";
 import { UserController } from "./user.controller";
+import { Role } from "./user.interface";
 import {
   createAdminZodSchema,
   createStudentZodSchema,
@@ -23,6 +25,7 @@ router.post(
 
 router.post(
   "/create_admin",
+  checkAuth(Role.ADMIN),
   upload.none(),
   validateRequest(createAdminZodSchema),
   UserController.createAdmin
@@ -30,6 +33,7 @@ router.post(
 
 router.post(
   "/create_teacher",
+  checkAuth(Role.ADMIN),
   upload.none(),
   validateRequest(createTeacherZodSchema),
   UserController.createTeacher

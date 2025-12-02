@@ -1,0 +1,16 @@
+model Class {
+  id        String          @id @default(uuid())
+  name      String          @unique
+  students  Student[]
+  schedules ClassSchedule[]
+}
+
+model Subject {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  code            String?
+  schedules       ClassSchedule[]
+  studentSubjects StudentSubject[]
+  student         Student?         @relation(fields: [studentId], references: [id])
+  studentId       String?
+}

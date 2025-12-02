@@ -1,0 +1,24 @@
+model ClassSchedule {
+  id        String   @id @default(uuid())
+  day       String
+  startTime DateTime
+  endTime   DateTime
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  teacherId   String
+  teacher     Teacher    @relation(fields: [teacherId], references: [id])
+  classTime   ClassTime? @relation(fields: [classTimeId], references: [id])
+  classTimeId String?
+}
+
+model ClassTime {
+  id        String          @id @default(uuid())
+  startTime String
+  endTime   String
+  schedules ClassSchedule[]
+}

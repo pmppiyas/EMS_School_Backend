@@ -1,17 +1,18 @@
 model Teacher {
-  id          String    @id @default(uuid())
-  firstName   String
-  lastName    String
-  email       String    @unique
-  phoneNumber String?
-  address     String?
-  dateOfBirth DateTime?
-  designation String?
-  gender      Gender?
-  userId      String    @unique
-  user        User      @relation(fields: [userId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String          @id @default(uuid())
+  firstName      String
+  lastName       String
+  email          String          @unique
+  phoneNumber    String?
+  address        String?
+  dateOfBirth    DateTime?
+  designation    String?
+  gender         Gender?
+  classSchedules ClassSchedule[]
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@map("teachers")
 }

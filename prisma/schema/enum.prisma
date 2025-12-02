@@ -11,7 +11,7 @@ enum UserStatus {
   SUSPENDED
 }
 
-enum Class {
+enum Classes {
   PLAYGROUP
   NURSERY
   STANDARD1
@@ -24,4 +24,13 @@ enum Class {
 enum Gender {
   MALE
   FEMALE
+}
+
+enum WeekDay {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
 }
