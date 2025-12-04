@@ -10,6 +10,7 @@ model User {
   student            Student?
   teacher            Teacher?
   admin              Admin?
+  notices            Notice[]
 
   @@map("users")
 }

@@ -30,4 +30,5 @@ model StudentSubject {
   subject Subject @relation(fields: [subjectId], references: [id])
 
   @@unique([studentId, subjectId, dayOfWeek])
+  @@map("studentSubjects")
 }

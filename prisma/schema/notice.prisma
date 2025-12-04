@@ -1,0 +1,13 @@
+model Notice {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  pinned    Boolean? @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String
+  user      User   @relation(fields: [createdBy], references: [id])
+
+  @@map("notices")
+}

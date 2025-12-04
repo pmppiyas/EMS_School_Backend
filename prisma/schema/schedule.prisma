@@ -13,6 +13,8 @@ model ClassSchedule {
 
   classTimeId String?
   classTime   ClassTime? @relation(fields: [classTimeId], references: [id])
+
+  @@map("classSchedules")
 }
 
 model ClassTime {
@@ -21,4 +23,6 @@ model ClassTime {
   startTime String
   endTime   String
   schedules ClassSchedule[]
+
+  @@map("classTimes")
 }
