@@ -1,6 +1,40 @@
+import { StatusCodes } from "http-status-codes";
 import prisma from "../../config/prisma";
+import { AppError } from "../../utils/appError";
+import { IUser } from "../user/user.interface";
 import { IFeeType } from "./fee.interfaces";
 
+const createFee = async (
+  payload: {
+    studentId: string;
+    feeTypeId: string;
+    amount: number;
+  },
+  user: IUser
+) => {
+  const { feeTypeId, studentId } = payload;
+  const issuedBy = await prisma.admin.findUniqueOrThrow({
+    where: {
+      email: user.email,
+    },
+  });
+
+  if (!issuedBy) {
+    throw new AppError(StatusCodes.UNAUTHORIZED, "You are unauthorized!");
+  }
+
+  const result = await prisma.feePayment.create({
+    data: {
+      feeTypeId,
+      studentId,
+      paidAmount: payload.amount,
+      issuedBy: issuedBy.firstName + " " + issuedBy.lastName,
+    },
+  });
+  return result;
+};
+
+// Fee types
 const createFeeType = async (payload: IFeeType) => {
   const { category, amount, isMonthly } = payload;
 
@@ -33,6 +67,7 @@ const deleteFeeType = async (id: string) => {
 };
 
 export const FeeServices = {
+  createFee,
   createFeeType,
   deleteFeeType,
 };

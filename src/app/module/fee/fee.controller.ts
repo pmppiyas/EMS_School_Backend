@@ -2,8 +2,23 @@ import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
+import { IUser } from "../user/user.interface";
 import { FeeServices } from "./fee.services";
 
+const createFee = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await FeeServices.createFee(req.body, req.user as IUser);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Fee strored successfully",
+      data: result,
+    });
+  }
+);
+
+// Fee types
 const createFeeType = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await FeeServices.createFeeType(req.body);
@@ -30,6 +45,7 @@ const deleteFeeType = catchAsync(
 );
 
 export const FeeControllers = {
+  createFee,
   createFeeType,
   deleteFeeType,
 };

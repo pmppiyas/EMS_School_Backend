@@ -22,6 +22,7 @@ model FeePayment {
   term       TERM?
   paidAmount Float
   paidDate   DateTime @default(now())
+  issuedBy   String
 
   student Student @relation(fields: [studentId], references: [id])
   feeType FeeType @relation(fields: [feeTypeId], references: [id])

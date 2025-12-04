@@ -5,6 +5,9 @@ import { FeeControllers } from "./fee.controller";
 
 const router = Router();
 
+router.post("/", checkAuth(Role.ADMIN), FeeControllers.createFee);
+
+// Fee types
 router.post(
   "/type",
   checkAuth(Role.ADMIN, Role.TEACHER),
@@ -16,4 +19,5 @@ router.delete(
   checkAuth(Role.ADMIN, Role.TEACHER),
   FeeControllers.deleteFeeType
 );
+
 export const feeRoutes = router;
