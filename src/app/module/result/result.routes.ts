@@ -11,4 +11,12 @@ router.post(
   ResultController.addResult
 );
 
+router.get(
+  "/",
+  checkAuth(Role.ADMIN, Role.TEACHER),
+  ResultController.getAllResults
+);
+
+router.get("/my", checkAuth(Role.STUDENT), ResultController.getMyResults);
+
 export const resultRoutes = router;

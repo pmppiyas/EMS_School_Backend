@@ -17,6 +17,31 @@ const addResult = catchAsync(
   }
 );
 
+const getAllResults = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ResultServices.getAllResults();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "All result retrieved successfully",
+      data: result,
+    });
+  }
+);
+
+const getMyResults = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ResultServices.myResults(req.user?.email as string);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "All result retrieved successfully",
+      data: result,
+    });
+  }
+);
 export const ResultController = {
   addResult,
+  getAllResults,
+  getMyResults,
 };
