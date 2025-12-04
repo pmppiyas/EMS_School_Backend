@@ -6,3 +6,19 @@ export interface AddResultBody {
   term: string;
   year: number;
 }
+
+export interface Result {
+  subject: string;
+  marks: number;
+  grade: string;
+}
+
+export interface EntityItem {
+  year: string;
+  term: string;
+  subject: string;
+  marks: number;
+  grade: string;
+}
+
+export type GroupedResults = Record<string, Record<string, Result[]>>;

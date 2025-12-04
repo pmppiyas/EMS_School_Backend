@@ -18,5 +18,9 @@ router.get(
 );
 
 router.get("/my", checkAuth(Role.STUDENT), ResultController.getMyResults);
-
+router.patch(
+  "/:id",
+  checkAuth(Role.TEACHER, Role.ADMIN),
+  ResultController.updateResult
+);
 export const resultRoutes = router;

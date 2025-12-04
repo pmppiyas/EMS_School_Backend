@@ -35,13 +35,27 @@ const getMyResults = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "All result retrieved successfully",
+      message: "My result retrieved successfully",
       data: result,
     });
   }
 );
+
+const updateResult = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ResultServices.updateResult(req.params.id, req.body);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Result updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const ResultController = {
   addResult,
   getAllResults,
   getMyResults,
+  updateResult,
 };

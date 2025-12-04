@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import prisma from "../../config/prisma";
 import { AppError } from "../../utils/appError";
 import { calculateGrade } from "../../utils/claculateGrade";
+import { resultFormation } from "../../utils/resultFormation";
 import { AddResultBody } from "./result.interface";
 
 const addResult = async (payload: AddResultBody) => {
@@ -42,7 +43,34 @@ const addResult = async (payload: AddResultBody) => {
 };
 
 const getAllResults = async () => {
-  return await prisma.result.findMany();
+  const results = await prisma.result.findMany({
+    select: {
+      student: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+          class: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      subject: {
+        select: {
+          name: true,
+          code: true,
+        },
+      },
+      marks: true,
+      grade: true,
+      term: true,
+      year: true,
+    },
+  });
+
+  return await resultFormation(results);
 };
 
 const myResults = async (email: string) => {
@@ -60,6 +88,18 @@ const myResults = async (email: string) => {
       studentId: student.id,
     },
     select: {
+      student: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+          class: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
       subject: {
         select: {
           name: true,
@@ -73,27 +113,59 @@ const myResults = async (email: string) => {
     },
   });
 
-  const grouped = results.reduce((acc, item) => {
-    const year = item.year;
-    const term = item.term;
+  return await resultFormation(results);
+};
 
-    if (!acc[year]) acc[year] = {};
-    if (!acc[year][term]) acc[year][term] = [];
+interface UpdateResultPayload {
+  marks?: number;
+  subjectId?: string;
+  term?: string;
+  year?: number;
+}
 
-    acc[year][term].push({
-      subject: item.subject,
-      marks: item.marks,
-      grade: item.grade,
-    });
+const updateResult = async (resultId: string, payload: UpdateResultPayload) => {
+  const { marks, subjectId, term, year } = payload;
 
-    return acc;
-  }, {} as Record<string, Record<string, any[]>>);
+  const existing = await prisma.result.findUnique({
+    where: { id: resultId },
+  });
 
-  return grouped;
+  if (!existing) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Result not found!");
+  }
+
+  const data: Record<string, unknown> = {};
+
+  if (marks !== undefined) {
+    if (marks > 100) {
+      throw new AppError(StatusCodes.NOT_MODIFIED, "Highest mark is 100");
+    } else if (marks < 0) {
+      throw new AppError(StatusCodes.NOT_MODIFIED, "Minimum mark is 00");
+    }
+    data.marks = marks;
+    data.grade = calculateGrade(marks);
+  }
+
+  const updated = await prisma.result.update({
+    where: { id: resultId },
+    data,
+    select: {
+      marks: true,
+      grade: true,
+      subject: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  return updated;
 };
 
 export const ResultServices = {
   addResult,
   getAllResults,
   myResults,
+  updateResult,
 };
