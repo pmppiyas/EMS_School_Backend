@@ -66,8 +66,37 @@ const deleteFeeType = async (id: string) => {
   return result.name;
 };
 
+const myFee = async (email: string) => {
+  const student = await prisma.student.findFirstOrThrow({
+    where: {
+      email,
+    },
+  });
+  if (!student) {
+    throw new AppError(StatusCodes.UNAUTHORIZED, "You are unauthorized!");
+  }
+  return await prisma.feePayment.findMany({
+    where: {
+      studentId: student.id,
+    },
+    select: {
+      paidAmount: true,
+      feeType: {
+        select: {
+          category: true,
+        },
+      },
+      month: true,
+      year: true,
+      term: true,
+      issuedBy: true,
+    },
+  });
+};
+
 export const FeeServices = {
   createFee,
+  myFee,
   createFeeType,
   deleteFeeType,
 };

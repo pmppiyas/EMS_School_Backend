@@ -44,8 +44,20 @@ const deleteFeeType = catchAsync(
   }
 );
 
+const myFee = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await FeeServices.myFee(req.user?.email as string);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `My fees retrieved successfully`,
+      data: result,
+    });
+  }
+);
 export const FeeControllers = {
   createFee,
+  myFee,
   createFeeType,
   deleteFeeType,
 };
