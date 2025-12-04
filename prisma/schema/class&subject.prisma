@@ -3,6 +3,7 @@ model Class {
   name      String          @unique
   students  Student[]
   schedules ClassSchedule[]
+  results   Result[]
 
   @@map("classes")
 }
@@ -15,6 +16,7 @@ model Subject {
   studentSubjects StudentSubject[]
   student         Student?         @relation(fields: [studentId], references: [id])
   studentId       String?
+  results         Result[]
 
   @@map("subjects")
 }

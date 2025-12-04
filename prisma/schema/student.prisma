@@ -16,6 +16,7 @@ model Student {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   studentSubjects StudentSubject[]
+  results         Result[]
 
   @@map("students")
 }
