@@ -16,10 +16,7 @@ const crdLogin = async (payload: ILoginPayload) => {
   });
 
   if (!user) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "Patient not exist by this gmail."
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "User not exist by this gmail.");
   }
 
   const isCorrectPass = await bcrypt.compare(payload.password, user.password);

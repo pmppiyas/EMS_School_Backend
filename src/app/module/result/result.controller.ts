@@ -43,7 +43,10 @@ const getMyResults = catchAsync(
 
 const updateResult = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ResultServices.updateResult(req.params.id, req.body);
+    const result = await ResultServices.updateResult(
+      req.params.id,
+      req.body.marks
+    );
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

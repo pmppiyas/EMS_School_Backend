@@ -34,3 +34,21 @@ enum WeekDay {
   FRIDAY
   SATURDAY
 }
+
+enum FeeCategory {
+  ADMISSION
+  SESSION
+  MONTHLY
+  TUITION
+  EXAM
+  TRANSPORT
+  LAB
+  OTHER
+}
+
+enum TERM {
+  FIRST
+  SECOND
+  THIRD
+  FINAL
+}

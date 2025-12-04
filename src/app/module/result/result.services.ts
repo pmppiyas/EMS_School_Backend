@@ -116,16 +116,9 @@ const myResults = async (email: string) => {
   return await resultFormation(results);
 };
 
-interface UpdateResultPayload {
-  marks?: number;
-  subjectId?: string;
-  term?: string;
-  year?: number;
-}
+interface UpdateResultPayload {}
 
-const updateResult = async (resultId: string, payload: UpdateResultPayload) => {
-  const { marks, subjectId, term, year } = payload;
-
+const updateResult = async (resultId: string, marks: number) => {
   const existing = await prisma.result.findUnique({
     where: { id: resultId },
   });

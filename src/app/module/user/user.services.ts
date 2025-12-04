@@ -40,7 +40,7 @@ const createStudent = async (req: Request) => {
         lastName: body.lastName,
         email: body.email,
         address: body.address!,
-        class: body.class,
+        classId: body.class,
         roll: body.roll,
         gender: body.gender!,
         dateOfBirth: body.dateOfBirth!,

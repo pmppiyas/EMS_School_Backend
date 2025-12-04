@@ -1,0 +1,30 @@
+model FeeType {
+  id        String      @id @default(uuid())
+  name      String
+  amount    Float
+  category  FeeCategory @unique
+  isMonthly Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  payments FeePayment[]
+
+  @@map("feeTypes")
+}
+
+model FeePayment {
+  id        String @id @default(uuid())
+  studentId String
+  feeTypeId String
+
+  month      Int?
+  year       Int?
+  term       TERM?
+  paidAmount Float
+  paidDate   DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id])
+  feeType FeeType @relation(fields: [feeTypeId], references: [id])
+
+  @@map("feePayments")
+}

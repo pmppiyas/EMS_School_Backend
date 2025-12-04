@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as zod from "zod";
 import { authRoutes } from "../module/auth/auth.routes";
 import { classRouter } from "../module/class/class.routes";
+import { feeRoutes } from "../module/fee/fee.routes";
 import { noticeRoutes } from "../module/notice/notice.routes";
 import { resultRoutes } from "../module/result/result.routes";
 import { scheduleRouter } from "../module/schedule/schedule.routes";
@@ -43,6 +44,10 @@ const allRoutes: routerArgs[] = [
   {
     path: "/result",
     route: resultRoutes,
+  },
+  {
+    path: "/fee",
+    route: feeRoutes,
   },
 ];
 

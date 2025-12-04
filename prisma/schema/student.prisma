@@ -17,6 +17,7 @@ model Student {
   updatedAt       DateTime         @updatedAt
   studentSubjects StudentSubject[]
   results         Result[]
+  feePayments     FeePayment[]
 
   @@map("students")
 }
