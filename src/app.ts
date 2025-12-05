@@ -2,6 +2,7 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import router from "./app/routes/routes";
 
 const app = express();
@@ -31,4 +32,5 @@ app.use((req, res, next) => {
   });
 });
 
+app.use(globalErrorHandler);
 export default app;

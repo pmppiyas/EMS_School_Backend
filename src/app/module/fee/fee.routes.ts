@@ -6,6 +6,7 @@ import { FeeControllers } from "./fee.controller";
 const router = Router();
 
 router.post("/", checkAuth(Role.ADMIN), FeeControllers.createFee);
+router.get("/", checkAuth(Role.ADMIN), FeeControllers.getAllFee);
 router.get("/my", checkAuth(Role.STUDENT), FeeControllers.myFee);
 
 // Fee types

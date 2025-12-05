@@ -19,7 +19,9 @@ const assignClassSchedule = catchAsync(
 
 const getAllSchedules = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ScheduleServices.getAllSchedules(req.params.classId);
+    const result = await ScheduleServices.getAllSchedules(
+      req.query.classId as string | undefined
+    );
 
     sendResponse(res, {
       success: true,

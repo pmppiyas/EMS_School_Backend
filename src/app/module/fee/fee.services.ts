@@ -34,6 +34,64 @@ const createFee = async (
   return result;
 };
 
+const getAllFee = async () => {
+  const fees = await prisma.feePayment.findMany({
+    select: {
+      student: {
+        select: {
+          firstName: true,
+          lastName: true,
+          class: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      feeType: {
+        select: {
+          category: true,
+          amount: true,
+        },
+      },
+      term: true,
+      month: true,
+      year: true,
+      paidDate: true,
+      issuedBy: true,
+    },
+  });
+  return fees;
+};
+
+const myFee = async (email: string) => {
+  const student = await prisma.student.findFirstOrThrow({
+    where: {
+      email,
+    },
+  });
+  if (!student) {
+    throw new AppError(StatusCodes.UNAUTHORIZED, "You are unauthorized!");
+  }
+  return await prisma.feePayment.findMany({
+    where: {
+      studentId: student.id,
+    },
+    select: {
+      paidAmount: true,
+      feeType: {
+        select: {
+          category: true,
+        },
+      },
+      month: true,
+      year: true,
+      term: true,
+      issuedBy: true,
+    },
+  });
+};
+
 // Fee types
 const createFeeType = async (payload: IFeeType) => {
   const { category, amount, isMonthly } = payload;
@@ -66,36 +124,9 @@ const deleteFeeType = async (id: string) => {
   return result.name;
 };
 
-const myFee = async (email: string) => {
-  const student = await prisma.student.findFirstOrThrow({
-    where: {
-      email,
-    },
-  });
-  if (!student) {
-    throw new AppError(StatusCodes.UNAUTHORIZED, "You are unauthorized!");
-  }
-  return await prisma.feePayment.findMany({
-    where: {
-      studentId: student.id,
-    },
-    select: {
-      paidAmount: true,
-      feeType: {
-        select: {
-          category: true,
-        },
-      },
-      month: true,
-      year: true,
-      term: true,
-      issuedBy: true,
-    },
-  });
-};
-
 export const FeeServices = {
   createFee,
+  getAllFee,
   myFee,
   createFeeType,
   deleteFeeType,

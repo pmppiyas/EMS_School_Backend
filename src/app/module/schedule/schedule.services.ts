@@ -1,6 +1,5 @@
 import { Request } from "express";
 import { StatusCodes } from "http-status-codes";
-import { JwtPayload } from "jsonwebtoken";
 import prisma from "../../config/prisma";
 import { groupAndSortSchedules } from "../../helper/scheduleHelper";
 import { AppError } from "../../utils/appError";
@@ -31,9 +30,10 @@ const assignClassSchedule = async (req: Request) => {
   return await prisma.classSchedule.createMany({ data });
 };
 
-export const getAllSchedules = async (classId: string) => {
+const getAllSchedules = async (classId?: string) => {
+  const where = classId ? { classId } : {};
   const schedules = await prisma.classSchedule.findMany({
-    where: { classId },
+    where,
     include: {
       classTime: {
         select: { period: true, startTime: true, endTime: true },
