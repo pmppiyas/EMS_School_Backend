@@ -17,7 +17,7 @@ model FeePayment {
   studentId String
   feeTypeId String
 
-  month      Int?
+  month      String?
   year       Int?
   term       TERM?
   paidAmount Float

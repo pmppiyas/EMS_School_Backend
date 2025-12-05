@@ -6,6 +6,7 @@ import { feeRoutes } from "../module/fee/fee.routes";
 import { noticeRoutes } from "../module/notice/notice.routes";
 import { resultRoutes } from "../module/result/result.routes";
 import { scheduleRouter } from "../module/schedule/schedule.routes";
+import { studentRoutes } from "../module/student/student.routes";
 import { subjectRouter } from "../module/subject/subject.routes";
 import { userRoutes } from "../module/user/user.routes";
 
@@ -48,6 +49,10 @@ const allRoutes: routerArgs[] = [
   {
     path: "/fee",
     route: feeRoutes,
+  },
+  {
+    path: "/student",
+    route: studentRoutes,
   },
 ];
 

@@ -13,3 +13,5 @@ export interface IFeeType {
   category: IFeeCategory;
   isMonthly?: boolean;
 }
+
+export type ITerm = "FIRST" | "SECOND" | "THIRD" | "FINAL";
