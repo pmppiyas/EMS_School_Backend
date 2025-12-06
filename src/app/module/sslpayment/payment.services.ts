@@ -78,6 +78,23 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
 
     if (feeType.category === "EXAM") {
       if (!term) throw new AppError(400, "Term is required!");
+
+      const exist = await tx.feePayment.findFirst({
+        where: {
+          studentId: student.id,
+          feeTypeId,
+          year,
+          term,
+          payment: {
+            status: "SUCCESS",
+          },
+        },
+      });
+
+      if (exist) {
+        throw new AppError(400, `Exam fee already paid for ${term} ${year}`);
+      }
+
       const feePayment = await tx.feePayment.create({
         data: {
           studentId: student.id,
@@ -99,10 +116,26 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
     }
 
     if (feeType.category === "SESSION") {
+      const exist = await prisma.feePayment.findFirst({
+        where: {
+          studentId: student.id,
+          feeTypeId,
+          year: year,
+          payment: {
+            status: "SUCCESS",
+          },
+        },
+      });
+
+      if (exist) {
+        throw new AppError(400, `Session fee already paid for  ${year}`);
+      }
+
       const feePayment = await tx.feePayment.create({
         data: {
           studentId: student.id,
           feeTypeId,
+          year,
           paidAmount: feeType.amount,
           issuedBy: "Electronic",
         },
@@ -127,7 +160,6 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
     0
   );
 
-  // ADD THIS
   const allTransIds = paymentRecords.map((p) => p.transactionId).join(",");
 
   const sslData = {
@@ -177,11 +209,25 @@ const successPayment = async (query: Record<string, string>) => {
   });
 };
 
-const failPayment = async () => {
-  return "Ok";
+const failPayment = async (query: Record<string, string>) => {
+  const ids = query.tran_id.split(",");
+
+  return await prisma.payment.updateMany({
+    where: {
+      transactionId: { in: ids },
+    },
+    data: { status: "FAILED" },
+  });
 };
-const cancelPayment = async () => {
-  return "Cancel";
+const cancelPayment = async (query: Record<string, string>) => {
+  const ids = query.tran_id.split(",");
+
+  return await prisma.payment.updateMany({
+    where: {
+      transactionId: { in: ids },
+    },
+    data: { status: "CANCELED" },
+  });
 };
 export const PaymentService = {
   paymentInit,

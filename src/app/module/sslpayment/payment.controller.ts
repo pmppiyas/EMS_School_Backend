@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../config/env";
-import prisma from "../../config/prisma";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { IUser } from "../user/user.interface";
@@ -41,8 +40,12 @@ const successPayment = catchAsync(async (req, res) => {
 
 const failPayment = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await PaymentService.failPayment();
-
+    const result = await PaymentService.failPayment(
+      req.query as Record<string, string>
+    );
+    if (result.count > 0) {
+      res.redirect(env.SSL.FAIL_FRONTEND_URL);
+    }
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
@@ -54,7 +57,13 @@ const failPayment = catchAsync(
 
 const cancelPayment = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await PaymentService.cancelPayment();
+    const result = await PaymentService.cancelPayment(
+      req.query as Record<string, string>
+    );
+
+    if (result.count > 0) {
+      res.redirect(env.SSL.CANCEL_FRONTEND_URL);
+    }
 
     sendResponse(res, {
       success: true,
