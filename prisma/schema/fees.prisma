@@ -24,8 +24,25 @@ model FeePayment {
   paidDate   DateTime @default(now())
   issuedBy   String
 
-  student Student @relation(fields: [studentId], references: [id])
-  feeType FeeType @relation(fields: [feeTypeId], references: [id])
+  student Student  @relation(fields: [studentId], references: [id])
+  feeType FeeType  @relation(fields: [feeTypeId], references: [id])
+  payment Payment?
 
   @@map("feePayments")
+}
+
+model Payment {
+  id           String     @id @default(uuid())
+  feePaymentId String     @unique
+  feePayment   FeePayment @relation(fields: [feePaymentId], references: [id])
+
+  transactionId String        @unique
+  amount        Float
+  method        PaymentMethod @default(SSL)
+  status        PaymentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
 }

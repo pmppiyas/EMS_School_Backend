@@ -13,10 +13,13 @@ export const env = {
   SSL: {
     STORE_ID: process.env.STORE_ID,
     STORE_PASS: process.env.STORE_PASS,
-    PAYMENT_API: process.env.PAYMENT_API,
+    PAYMENT_API: process.env.PAYMENT_API as string,
     VALIDATION_API: process.env.VALIDATION_API,
     SUCCESS_BACKEND_URL: process.env.SUCCESS_BACKEND_URL,
     FAIL_BACKEND_URL: process.env.FAIL_BACKEND_URL,
     CANCEL_BACKEND_URL: process.env.CANCEL_BACKEND_URL,
+    SUCCESS_FRONTEND_URL: process.env.SUCCESS_FRONTEND_URL as string,
+    FAIL_FRONTEND_URL: process.env.FAIL_FRONTEND_URL as string,
+    CANCEL_FRONTEND_URL: process.env.CANCEL_FRONTEND_URL as string,
   },
 };

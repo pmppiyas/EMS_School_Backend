@@ -1,8 +1,9 @@
+import { ITerm } from "../fee/fee.interfaces";
+
 export interface IPayment {
+  feeTypeId: string;
   amount: number;
   transactionId: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
+  months?: string;
+  term?: ITerm;
 }

@@ -52,3 +52,18 @@ enum TERM {
   THIRD
   FINAL
 }
+
+enum PaymentMethod {
+  SSL
+  BKASH
+  NAGAD
+  ROCKET
+  CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  CANCELED
+  FAILED
+}
