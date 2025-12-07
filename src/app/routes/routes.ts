@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as zod from "zod";
+import { attendRoutes } from "../module/attendance/attend.routes";
 import { authRoutes } from "../module/auth/auth.routes";
 import { classRouter } from "../module/class/class.routes";
 import { feeRoutes } from "../module/fee/fee.routes";
@@ -58,6 +59,10 @@ const allRoutes: routerArgs[] = [
   {
     path: "/payment",
     route: paymentRoutes,
+  },
+  {
+    path: "/attendance",
+    route: attendRoutes,
   },
 ];
 

@@ -3,6 +3,7 @@ import { env } from "../config/env";
 import {
   handleDuplicateError,
   handleZodValidatonError,
+  prismaError,
   validationError,
 } from "../helper/errorHelper";
 import { AppError } from "../utils/appError";
@@ -29,8 +30,19 @@ export const globalErrorHandler = (
     validationError(err);
   }
 
-  //Zod Error
+  //Prisma Error
+  if (err.name === "PrismaClientKnownRequestError") {
+    const prismaErr = prismaError(err);
+    return res.status(prismaErr.statusCode).json({
+      success: false,
+      message: prismaErr.message,
+      err,
+      stack: env.NODE_ENV === "development" ? err.stack : null,
+    });
+  }
+
   if (err.name === "ZodError") {
+    //Zod Error
     message = handleZodValidatonError(err).message;
     statusCode = handleZodValidatonError(err).statusCode;
   } else if (err instanceof AppError) {

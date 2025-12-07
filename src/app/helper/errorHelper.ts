@@ -93,3 +93,24 @@ export const validationError = (error: any) => {
     statusCode: httpStatus.BAD_REQUEST,
   };
 };
+
+export const prismaError = (err: any) => {
+  if (err.code === "P2025") {
+    return {
+      statusCode: httpStatus.NOT_FOUND,
+      message: `${err.meta?.modelName || "Record"} not found`,
+    };
+  }
+
+  if (err.code === "P2002") {
+    return {
+      statusCode: httpStatus.CONFLICT,
+      message: `Unique constraint failed on the field: ${err.meta?.target}`,
+    };
+  }
+
+  return {
+    statusCode: 500,
+    message: "Prisma Client Error",
+  };
+};

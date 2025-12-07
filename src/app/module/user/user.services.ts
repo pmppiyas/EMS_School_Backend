@@ -95,6 +95,19 @@ const createTeacher = async (req: Request) => {
   const hashPassword = await bcrypt.hash(body.password as string, Number(salt));
 
   const result = await prisma.$transaction(async (tnx) => {
+    const exist = await prisma.user.findUnique({
+      where: {
+        email: body.email,
+      },
+    });
+
+    if (exist) {
+      throw new AppError(
+        StatusCodes.CONFLICT,
+        "User already exist by this email"
+      );
+    }
+
     const user = await tnx.user.create({
       data: {
         email: body.email,

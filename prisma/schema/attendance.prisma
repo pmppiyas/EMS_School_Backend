@@ -1,0 +1,20 @@
+model Attendance {
+  id        String           @id @default(uuid())
+  userId    String
+  notedBy   String
+  inTime    DateTime?
+  outTime   DateTime?
+  status    AttendanceStatus
+  classId   String?
+  createdAt DateTime         @default(now())
+
+  @@unique([id, createdAt])
+  @@map("attendance")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+}

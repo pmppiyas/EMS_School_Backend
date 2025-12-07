@@ -10,7 +10,7 @@ export const createStudentZodSchema = zod.object({
     phoneNumber: zod.string().optional(),
     address: zod.string().optional(),
     dateOfBirth: zod.string().datetime().optional(),
-    class: zod.uuid(),
+    class: zod.string().min(1, "Class is required"),
     roll: zod.string().min(1, "Roll is required"),
     gender: zod.enum(["MALE", "FEMALE"]),
   }),
