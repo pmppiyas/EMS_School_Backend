@@ -21,6 +21,24 @@ const markAttendance = catchAsync(
   }
 );
 
+const getAttendance = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.user);
+    const result = await AttendServices.getAttendance(
+      req.body.classId,
+      req.user as IUser
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Attendance retrieved successfully",
+      data: result,
+    });
+  }
+);
+
 export const AttendController = {
   markAttendance,
+  getAttendance,
 };

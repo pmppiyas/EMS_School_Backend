@@ -1,20 +1,16 @@
 model Attendance {
   id        String           @id @default(uuid())
   userId    String
-  notedBy   String
+  classId   String?
+  status    AttendanceStatus
   inTime    DateTime?
   outTime   DateTime?
-  status    AttendanceStatus
-  classId   String?
+  notedBy   String
   createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  class Class? @relation(fields: [classId], references: [id])
 
   @@unique([id, createdAt])
   @@map("attendance")
-}
-
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  LATE
-  LEAVE
 }

@@ -1,9 +1,10 @@
 model Class {
-  id        String          @id @default(uuid())
-  name      String          @unique
-  students  Student[]
-  schedules ClassSchedule[]
-  results   Result[]
+  id          String          @id @default(uuid())
+  name        String          @unique
+  students    Student[]
+  schedules   ClassSchedule[]
+  results     Result[]
+  attendances Attendance[]
 
   @@map("classes")
 }

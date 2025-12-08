@@ -10,4 +10,9 @@ router.post(
   AttendController.markAttendance
 );
 
+router.get(
+  "/",
+  checkAuth(...Object.values(Role)),
+  AttendController.getAttendance
+);
 export const attendRoutes = router;

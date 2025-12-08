@@ -67,3 +67,10 @@ enum PaymentStatus {
   CANCELED
   FAILED
 }
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+}
