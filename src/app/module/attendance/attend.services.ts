@@ -9,6 +9,7 @@ const markAttendance = async (
   user: IUser
 ) => {
   const { classId, records } = payload;
+
   const existClass = await prisma.class.findUnique({
     where: { id: classId },
   });
@@ -16,36 +17,40 @@ const markAttendance = async (
   if (!existClass) {
     throw new AppError(StatusCodes.NOT_FOUND, "Class not found.");
   }
-  const allStudents = await prisma.student.findMany({
-    where: { classId: classId },
-    select: { id: true },
-  });
-  const totalStudents = allStudents.length;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   return await prisma.$transaction(async (tx) => {
-    const result = [];
-    const counts = {
-      PRESENT: 0,
-      LEAVE: 0,
-      ABSENT: 0,
+    const summary = {
+      PRESENT: { count: 0, users: [] as string[] },
+      ABSENT: { count: 0, users: [] as string[] },
+      LEAVE: { count: 0, users: [] as string[] },
     };
 
     for (const rec of records) {
-      const existUser = await tx.user.findUnique({ where: { id: rec.userId } });
+      const existUser = await tx.user.findUnique({
+        where: { id: rec.userId },
+      });
+
       if (!existUser) {
         throw new AppError(
           StatusCodes.NOT_FOUND,
           `User not found: ${rec.userId}`
         );
       }
+
+      // Determine status
       let finalStatus: IAttendStatus;
       if (rec.outTime) finalStatus = IAttendStatus.LEAVE;
       else if (rec.inTime) finalStatus = IAttendStatus.PRESENT;
       else finalStatus = IAttendStatus.ABSENT;
-      counts[finalStatus]++;
+
+      // Add to summary
+      summary[finalStatus].count++;
+      summary[finalStatus].users.push(rec.userId);
+
+      // Check existing attendance for today
       const existAttendance = await tx.attendance.findFirst({
         where: {
           userId: rec.userId,
@@ -55,33 +60,34 @@ const markAttendance = async (
           },
         },
       });
-      const attendance = existAttendance
-        ? await tx.attendance.update({
-            where: { id: existAttendance.id },
-            data: {
-              status: finalStatus,
-              inTime: rec.inTime ? new Date(rec.inTime) : undefined,
-              outTime: rec.outTime ? new Date(rec.outTime) : undefined,
-              notedBy: user.email,
-            },
-          })
-        : await tx.attendance.create({
-            data: {
-              userId: rec.userId,
-              classId: existClass.id,
-              createdAt: today,
-              status: finalStatus,
-              inTime: rec.inTime ? new Date(rec.inTime) : null,
-              outTime: rec.outTime ? new Date(rec.outTime) : null,
-              notedBy: user.email,
-            },
-          });
-      result.push(attendance);
+
+      // Update or create attendance
+      if (existAttendance) {
+        await tx.attendance.update({
+          where: { id: existAttendance.id },
+          data: {
+            status: finalStatus,
+            inTime: rec.inTime ? new Date(rec.inTime) : undefined,
+            outTime: rec.outTime ? new Date(rec.outTime) : undefined,
+            notedBy: user.email,
+          },
+        });
+      } else {
+        await tx.attendance.create({
+          data: {
+            userId: rec.userId,
+            classId: existClass.id,
+            createdAt: today,
+            status: finalStatus,
+            inTime: rec.inTime ? new Date(rec.inTime) : null,
+            outTime: rec.outTime ? new Date(rec.outTime) : null,
+            notedBy: user.email,
+          },
+        });
+      }
     }
-    return {
-      totalStudents,
-      counts,
-    };
+
+    return summary;
   });
 };
 
@@ -103,7 +109,8 @@ export const getAttendance = async (classId?: string, user?: IUser) => {
     include: { class: true },
   });
 
-  const totalStudents = allStudents.length;
+  const totalStudents =
+    Number(totalAdmins) + Number(totalTeachers) + Number(allStudents.length);
 
   const filteredStudents = classId
     ? allStudents.filter((s) => s.classId === classId)
@@ -213,6 +220,7 @@ export const getAttendance = async (classId?: string, user?: IUser) => {
 
   throw new AppError(StatusCodes.FORBIDDEN, "Access Denied");
 };
+
 const generateDailyAttendance = async () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);

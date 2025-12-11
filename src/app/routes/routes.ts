@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as zod from "zod";
+import { path } from "path";
 import { attendRoutes } from "../module/attendance/attend.routes";
 import { authRoutes } from "../module/auth/auth.routes";
 import { classRouter } from "../module/class/class.routes";
@@ -10,6 +10,7 @@ import { scheduleRouter } from "../module/schedule/schedule.routes";
 import { paymentRoutes } from "../module/sslpayment/payment.routes";
 import { studentRoutes } from "../module/student/student.routes";
 import { subjectRouter } from "../module/subject/subject.routes";
+import { teacherRoutes } from "../module/teacher/teacher.routes";
 import { userRoutes } from "../module/user/user.routes";
 
 const router = Router();
@@ -64,23 +65,14 @@ const allRoutes: routerArgs[] = [
     path: "/attendance",
     route: attendRoutes,
   },
+  {
+    path: "/teacher",
+    route: teacherRoutes,
+  },
 ];
 
 allRoutes.forEach((route) => {
   router.use(route.path, route.route);
 });
+
 export default router;
-export const createStudentZodSchema = zod.object({
-  body: zod.object({
-    firstName: zod.string().min(1, "First name is required"),
-    lastName: zod.string().min(1, "Last name is required"),
-    email: zod.string().email("Invalid email address"),
-    phoneNumber: zod.string().optional(),
-    address: zod.string().optional(),
-    dateOfBirth: zod.string().datetime().optional(),
-    class: zod.string().min(1, "Class is required"),
-    roll: zod.string().min(1, "Roll is required"),
-    gender: zod.enum(["MALE", "FEMALE"]),
-    userId: zod.string().uuid("Invalid userId format"),
-  }),
-});

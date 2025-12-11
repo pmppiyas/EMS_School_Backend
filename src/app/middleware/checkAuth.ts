@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import prisma from "../config/prisma";
-import { verifyToken } from '../helper/verifyToken';
+import { verifyToken } from "../helper/verifyToken";
 import { AppError } from "../utils/appError";
 
 export const checkAuth = (...roles: string[]) => {
@@ -17,6 +17,7 @@ export const checkAuth = (...roles: string[]) => {
       if (!accessToken) {
         throw new AppError(StatusCodes.FORBIDDEN, "No Token Received");
       }
+
       const decoded = verifyToken(accessToken);
 
       if (!roles.includes(decoded.role)) {
