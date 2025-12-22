@@ -46,6 +46,11 @@ const createAdmin = catchAsync(
 
 const createTeacher = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    console.log("Create Controoler", {
+      file: req.file,
+      data: req.body,
+    });
+
     const result = await UserServices.createTeacher(req);
 
     sendResponse(res, {

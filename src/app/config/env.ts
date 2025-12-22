@@ -22,4 +22,9 @@ export const env = {
     FAIL_FRONTEND_URL: process.env.FAIL_FRONTEND_URL as string,
     CANCEL_FRONTEND_URL: process.env.CANCEL_FRONTEND_URL as string,
   },
+  CLOUDINARY: {
+    CLOUD_NAME: process.env.CLOUD_NAME as string,
+    API_KEY: process.env.API_KEY as string,
+    API_SECRET: process.env.API_SECRET as string,
+  },
 };

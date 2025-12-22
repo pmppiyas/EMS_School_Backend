@@ -11,16 +11,16 @@ const crdLogin = catchAsync(
     const { accessToken, refreshToken, needPasswordChange } = result;
 
     res.cookie("accessToken", accessToken, {
-      secure: true,
+      secure: false,
       httpOnly: true,
-      sameSite: "none",
+      sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24,
     });
 
     res.cookie("refreshToken", refreshToken, {
-      secure: true,
+      secure: false,
       httpOnly: true,
-      sameSite: "none",
+      sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 

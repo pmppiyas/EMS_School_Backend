@@ -8,8 +8,8 @@ model Attendance {
   notedBy   String
   createdAt DateTime         @default(now())
 
-  user User @relation(fields: [userId], references: [id])
-  class Class? @relation(fields: [classId], references: [id])
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class Class? @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([id, createdAt])
   @@map("attendance")
