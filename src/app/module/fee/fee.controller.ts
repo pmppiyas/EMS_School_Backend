@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-import { IUser } from "../user/user.interface";
-import { FeeServices } from "./fee.services";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { IUser } from '../user/user.interface';
+import { FeeServices } from './fee.services';
 
 const createFee = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -12,7 +12,7 @@ const createFee = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "Fee strored successfully",
+      message: 'Fee strored successfully',
       data: result,
     });
   }
@@ -25,7 +25,19 @@ const getAllFee = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "All fees retrieved successfully",
+      message: 'All fees retrieved successfully',
+      data: result,
+    });
+  }
+);
+
+const myFee = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await FeeServices.myFee(req.user?.email as string);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `My fees retrieved successfully`,
       data: result,
     });
   }
@@ -39,7 +51,7 @@ const createFeeType = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "Fee type created successfully",
+      message: 'Fee type created successfully',
       data: result,
     });
   }
@@ -60,6 +72,7 @@ const deleteFeeType = catchAsync(
 export const FeeControllers = {
   createFee,
   getAllFee,
+  myFee,
   createFeeType,
   deleteFeeType,
 };
