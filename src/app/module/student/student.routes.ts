@@ -4,9 +4,6 @@ import { Role } from '../user/user.interface';
 import { StudentController } from './student.controller';
 const router = Router();
 
-
-
-
 router.get(
   '/',
   checkAuth(Role.ADMIN, Role.TEACHER),
@@ -23,6 +20,12 @@ router.put(
   '/:id',
   checkAuth(...Object.values(Role)),
   StudentController.updateStudent
+);
+
+router.get(
+  '/:id',
+  checkAuth(...Object.values(Role)),
+  StudentController.getById
 );
 
 export const studentRoutes = router;

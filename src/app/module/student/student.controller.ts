@@ -45,8 +45,21 @@ const updateStudent = catchAsync(
   }
 );
 
+const getById = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await StudentServices.getById(req.params.id);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Single student retrieved successfully `,
+      data: result,
+    });
+  }
+);
+
 export const StudentController = {
   allStudents,
   deleteStudent,
   updateStudent,
+  getById,
 };

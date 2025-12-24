@@ -1,3 +1,4 @@
+import { get } from 'http';
 import prisma from '../../config/prisma';
 import { IUser, Role } from '../user/user.interface';
 import { Prisma } from '@prisma/client';
@@ -77,8 +78,14 @@ const updateStudent = async (
   });
 };
 
+const getById = async (id: string) => {
+  return await prisma.student.findFirst({
+    where: { id },
+  });
+};
 export const StudentServices = {
   allStudents,
   deleteStudent,
   updateStudent,
+  getById,
 };
