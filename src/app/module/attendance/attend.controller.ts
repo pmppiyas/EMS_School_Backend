@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-import { IUser } from "../user/user.interface";
-import { AttendServices } from "./attend.services";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { IUser } from '../user/user.interface';
+import { AttendServices } from './attend.services';
 
 const markAttendance = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -15,23 +15,37 @@ const markAttendance = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "Attendance create successfully",
+      message: 'Attendance create successfully',
       data: result,
     });
   }
 );
 
-const getAttendance = catchAsync(
+const getTeacherAttendance = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await AttendServices.getAttendance(
-      req.body.classId,
-      req.user as IUser
+    const result = await AttendServices.getTeacherAttendance(
+      req.query.date as string | undefined
     );
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "Attendance retrieved successfully",
+      message: 'Teachers attendance retrieved successfully',
+      data: result,
+    });
+  }
+);
+
+const getStudnetAttendance = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await AttendServices.getStudentAttendance(
+      req.query.date as string | undefined
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Studnets attendance retrieved successfully',
       data: result,
     });
   }
@@ -39,5 +53,6 @@ const getAttendance = catchAsync(
 
 export const AttendController = {
   markAttendance,
-  getAttendance,
+  getTeacherAttendance,
+  getStudnetAttendance,
 };

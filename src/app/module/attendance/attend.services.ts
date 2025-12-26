@@ -1,87 +1,111 @@
-import { StatusCodes } from "http-status-codes";
-import prisma from "../../config/prisma";
-import { AppError } from "../../utils/appError";
-import { IUser, Role } from "../user/user.interface";
-import { IAttendRecord, IAttendStatus } from "./attend.interface";
+import { StatusCodes } from 'http-status-codes';
+import prisma from '../../config/prisma';
+import { AppError } from '../../utils/appError';
+import { Role } from '../user/user.interface';
+import { IAttendStatus } from './attend.interface';
+import { formatBDTime } from '../../utils/dateFormat';
 
 const markAttendance = async (
-  payload: { classId?: string; records: IAttendRecord[] },
-  user: IUser
+  payload: {
+    classId?: string;
+    records: { userId: string; inTime?: string; outTime?: string }[];
+  },
+  user: { email: string }
 ) => {
   const { classId, records } = payload;
 
-  const existClass = await prisma.class.findUnique({
-    where: { id: classId },
+  const now = new Date();
+  const bdtNow = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+  const today = new Date(bdtNow);
+  today.setUTCHours(0, 0, 0, 0);
+
+  const firstPeriod = await prisma.classTime.findFirst({
+    orderBy: { startTime: 'asc' },
   });
 
-  if (!existClass) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Class not found.");
+  if (!firstPeriod) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'No class schedule found');
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const CLASS_START_HOUR = parseInt(firstPeriod.startTime.split(':')[0]);
+  const CLASS_START_MINUTE = parseInt(firstPeriod.startTime.split(':')[1]);
+  const LATE_MINUTE_LIMIT = CLASS_START_MINUTE + 5;
 
   return await prisma.$transaction(async (tx) => {
-    const summary = {
-      PRESENT: { count: 0, users: [] as string[] },
-      ABSENT: { count: 0, users: [] as string[] },
-      LEAVE: { count: 0, users: [] as string[] },
+    const summary: Record<IAttendStatus, { count: number; users: string[] }> = {
+      PRESENT: { count: 0, users: [] },
+      ABSENT: { count: 0, users: [] },
+      LATE: { count: 0, users: [] },
+      LEAVE: { count: 0, users: [] },
     };
 
     for (const rec of records) {
       const existUser = await tx.user.findUnique({
         where: { id: rec.userId },
+        select: { id: true, role: true },
       });
 
-      if (!existUser) {
+      if (!existUser)
         throw new AppError(
           StatusCodes.NOT_FOUND,
           `User not found: ${rec.userId}`
         );
+
+      let finalStatus: IAttendStatus;
+
+      if (rec.outTime) {
+        finalStatus = IAttendStatus.LEAVE;
+      } else if (rec.inTime) {
+        const inDateUTC = new Date(rec.inTime);
+        const hours = inDateUTC.getUTCHours();
+        const minutes = inDateUTC.getUTCMinutes();
+
+        if (
+          hours > CLASS_START_HOUR ||
+          (hours === CLASS_START_HOUR && minutes > LATE_MINUTE_LIMIT)
+        ) {
+          finalStatus = IAttendStatus.LATE;
+        } else {
+          finalStatus = IAttendStatus.PRESENT;
+        }
+      } else {
+        finalStatus = IAttendStatus.ABSENT;
       }
 
-      // Determine status
-      let finalStatus: IAttendStatus;
-      if (rec.outTime) finalStatus = IAttendStatus.LEAVE;
-      else if (rec.inTime) finalStatus = IAttendStatus.PRESENT;
-      else finalStatus = IAttendStatus.ABSENT;
-
-      // Add to summary
       summary[finalStatus].count++;
       summary[finalStatus].users.push(rec.userId);
 
-      // Check existing attendance for today
+      const targetClassId = existUser.role === 'STUDENT' ? classId : null;
+
       const existAttendance = await tx.attendance.findFirst({
         where: {
           userId: rec.userId,
           createdAt: {
-            gte: today,
-            lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
+            gte: new Date(today.getTime() - 6 * 60 * 60 * 1000),
+            lt: new Date(today.getTime() + 18 * 60 * 60 * 1000),
           },
         },
       });
 
-      // Update or create attendance
+      const attendanceData = {
+        status: finalStatus,
+        inTime: rec.inTime ? new Date(rec.inTime) : null,
+        outTime: rec.outTime ? new Date(rec.outTime) : null,
+        notedBy: user.email,
+        classId: targetClassId,
+      };
+
       if (existAttendance) {
         await tx.attendance.update({
           where: { id: existAttendance.id },
-          data: {
-            status: finalStatus,
-            inTime: rec.inTime ? new Date(rec.inTime) : undefined,
-            outTime: rec.outTime ? new Date(rec.outTime) : undefined,
-            notedBy: user.email,
-          },
+          data: attendanceData,
         });
       } else {
         await tx.attendance.create({
           data: {
+            ...attendanceData,
             userId: rec.userId,
-            classId: existClass.id,
-            createdAt: today,
-            status: finalStatus,
-            inTime: rec.inTime ? new Date(rec.inTime) : null,
-            outTime: rec.outTime ? new Date(rec.outTime) : null,
-            notedBy: user.email,
+            createdAt: now,
           },
         });
       }
@@ -91,34 +115,69 @@ const markAttendance = async (
   });
 };
 
-export const getAttendance = async (classId?: string, user?: IUser) => {
-  if (!user) throw new AppError(StatusCodes.UNAUTHORIZED, "User not provided");
+const getTeacherAttendance = async (date?: string) => {
+  const targetDate = date ? new Date(date) : new Date();
+  targetDate.setHours(0, 0, 0, 0);
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
-
-  const totalAdmins = await prisma.user.count({ where: { role: Role.ADMIN } });
-
-  const totalTeachers = await prisma.user.count({
-    where: { role: Role.TEACHER },
-  });
-
-  const allStudents = await prisma.student.findMany({
-    include: { class: true },
-  });
-
-  const totalStudents =
-    Number(totalAdmins) + Number(totalTeachers) + Number(allStudents.length);
-
-  const filteredStudents = classId
-    ? allStudents.filter((s) => s.classId === classId)
-    : allStudents;
+  const nextDay = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000);
 
   const attendance = await prisma.attendance.findMany({
     where: {
-      createdAt: { gte: todayStart, lte: todayEnd },
+      createdAt: { gte: targetDate, lt: nextDay },
+      user: { role: 'TEACHER' },
+    },
+    include: {
+      user: { include: { teacher: true } },
+    },
+  });
+
+  const presentTeachers: any[] = [];
+  const absentTeachers: any[] = [];
+  const lateTeachers: any[] = [];
+
+  attendance.forEach((att) => {
+    const teacher = att.user.teacher;
+    if (!teacher) return;
+
+    const info = {
+      id: teacher.id,
+      userId: att.userId,
+      name: `${teacher.firstName} ${teacher.lastName}`,
+      status: att.status,
+      inTime: att.inTime,
+      outTime: att.outTime,
+    };
+
+    if (att.status === IAttendStatus.PRESENT) presentTeachers.push(info);
+    else if (att.status === IAttendStatus.ABSENT) absentTeachers.push(info);
+    else if (att.status === IAttendStatus.LATE) lateTeachers.push(info);
+  });
+
+  return {
+    date: targetDate.toISOString().split('T')[0],
+    teacher: {
+      present: { total: presentTeachers.length, list: presentTeachers },
+      absent: { total: absentTeachers.length, list: absentTeachers },
+      late: { total: lateTeachers.length, list: lateTeachers },
+    },
+  };
+};
+
+const getStudentAttendance = async (date?: string) => {
+  const BDT_OFFSET = 6 * 60;
+
+  const now = date ? new Date(date) : new Date();
+  const targetDateBDT = new Date(
+    now.getTime() + (BDT_OFFSET + now.getTimezoneOffset()) * 60 * 1000
+  );
+  targetDateBDT.setHours(0, 0, 0, 0);
+
+  const nextDayBDT = new Date(targetDateBDT.getTime() + 24 * 60 * 60 * 1000);
+
+  const attendance = await prisma.attendance.findMany({
+    where: {
+      createdAt: { gte: targetDateBDT, lt: nextDayBDT },
+      user: { role: 'STUDENT' },
     },
     include: {
       user: true,
@@ -126,104 +185,59 @@ export const getAttendance = async (classId?: string, user?: IUser) => {
     },
   });
 
-  const adminSummary = {
-    total: totalAdmins,
-    present: 0,
-    absent: totalAdmins,
-    leave: 0,
-  };
-  const teacherSummary = {
-    total: totalTeachers,
-    present: 0,
-    absent: totalTeachers,
-    leave: 0,
-  };
-  const studentSummary: any = { total: totalStudents };
+  const presentStudents: any[] = [];
+  const absentStudents: any[] = [];
+  const lateStudents: any[] = [];
 
-  filteredStudents.forEach((s) => {
-    const className = s.class?.name || "UNKNOWN";
-    if (!studentSummary[className]) {
-      studentSummary[className] = { total: 0, present: 0, absent: 0, leave: 0 };
-    }
-    studentSummary[className].total++;
-    studentSummary[className].absent++;
-  });
-
-  attendance.forEach((a) => {
-    const role = a.user?.role;
-    const status = a.status;
-
-    if (role === Role.ADMIN) {
-      if (status !== IAttendStatus.ABSENT) adminSummary.absent--;
-      if (status === IAttendStatus.PRESENT) adminSummary.present++;
-      if (status === IAttendStatus.LEAVE) adminSummary.leave++;
-    }
-
-    if (role === Role.TEACHER) {
-      if (status !== IAttendStatus.ABSENT) teacherSummary.absent--;
-      if (status === IAttendStatus.PRESENT) teacherSummary.present++;
-      if (status === IAttendStatus.LEAVE) teacherSummary.leave++;
-    }
-
-    if (role === Role.STUDENT) {
-      const className = a.class?.name || "UNKNOWN";
-      if (!studentSummary[className]) return;
-      if (status !== IAttendStatus.ABSENT) studentSummary[className].absent--;
-      if (status === IAttendStatus.PRESENT) studentSummary[className].present++;
-      if (status === IAttendStatus.LEAVE) studentSummary[className].leave++;
-    }
-  });
-
-  if (user.role === Role.ADMIN) {
-    return {
-      admin: adminSummary,
-      teacher: teacherSummary,
-      student: studentSummary,
-    };
-  }
-
-  if (user.role === Role.TEACHER) {
-    return {
-      teacher: teacherSummary,
-      student: studentSummary,
-    };
-  }
-
-  if (user.role === Role.STUDENT) {
-    const attendance = await prisma.attendance.findMany({
-      where: { userId: user.id },
-      include: { class: true },
-      orderBy: { createdAt: "desc" },
+  attendance.forEach(async (att) => {
+    const student = att.user;
+    if (!student) return;
+    const stuInfo = await prisma.student.findUnique({
+      where: {
+        userId: student.id,
+      },
+      select: {
+        firstName: true,
+        lastName: true,
+      },
     });
 
-    const groupedByMonth: Record<string, any[]> = {};
+    const info = {
+      id: student.id,
+      userId: att.userId,
+      name: `${stuInfo?.firstName} ${stuInfo?.lastName}`,
+      classId: att.classId,
+      className: att.class?.name || 'UNKNOWN',
+      status: att.status,
+      inTime: att.inTime,
+      outTime: att.outTime,
+    };
 
-    attendance.forEach((att) => {
-      const date = new Date(att.createdAt);
-      const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}`;
+    if (att.status === IAttendStatus.PRESENT) presentStudents.push(info);
+    else if (att.status === IAttendStatus.ABSENT) absentStudents.push(info);
+    else if (att.status === IAttendStatus.LATE) lateStudents.push(info);
+  });
 
-      if (!groupedByMonth[monthKey]) groupedByMonth[monthKey] = [];
-      groupedByMonth[monthKey].push({
-        id: att.id,
-        classId: att.classId,
-        status: att.status,
-        inTime: att.inTime,
-        outTime: att.outTime,
-        notedBy: att.notedBy,
-        createdAt: att.createdAt,
-      });
-    });
-    return groupedByMonth;
-  }
-
-  throw new AppError(StatusCodes.FORBIDDEN, "Access Denied");
+  return {
+    date: targetDateBDT.toISOString().split('T')[0],
+    student: {
+      present: { total: presentStudents.length, list: presentStudents },
+      absent: { total: absentStudents.length, list: absentStudents },
+      late: { total: lateStudents.length, list: lateStudents },
+    },
+  };
 };
 
 const generateDailyAttendance = async () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const BDT_OFFSET_HOURS = 6;
+  const nowUTC = new Date();
+
+  const todayBDT = new Date(
+    nowUTC.getTime() + BDT_OFFSET_HOURS * 60 * 60 * 1000
+  );
+  todayBDT.setUTCHours(0, 0, 0, 0);
+
+  const nextDayBDT = new Date(todayBDT.getTime() + 24 * 60 * 60 * 1000);
 
   const users = await prisma.user.findMany({
     include: {
@@ -235,42 +249,37 @@ const generateDailyAttendance = async () => {
 
   return await prisma.$transaction(async (tx) => {
     for (const u of users) {
-      let classId: string | null = null;
+      let classId: string | null =
+        u.role === Role.STUDENT ? u.student?.classId ?? null : null;
 
-      switch (u.role) {
-        case Role.STUDENT:
-          classId = u.student?.classId ?? null;
-          break;
-
-        case Role.TEACHER:
-        case Role.ADMIN:
-          classId = null;
-          break;
-      }
-
-      await tx.attendance.upsert({
+      const exist = await tx.attendance.findFirst({
         where: {
-          id_createdAt: {
-            id: u.id,
-            createdAt: new Date(today),
+          userId: u.id,
+          createdAt: {
+            gte: todayBDT,
+            lt: nextDayBDT,
           },
         },
-        create: {
-          id: u.id,
-          userId: u.id,
-          notedBy: "SYSTEM",
-          status: "ABSENT",
-          classId: classId,
-          createdAt: new Date(today),
-        },
-        update: {},
       });
+
+      if (!exist) {
+        await tx.attendance.create({
+          data: {
+            userId: u.id,
+            classId,
+            status: IAttendStatus.ABSENT,
+            notedBy: 'SYSTEM',
+            createdAt: todayBDT,
+          },
+        });
+      }
     }
   });
 };
 
 export const AttendServices = {
   markAttendance,
-  getAttendance,
+  getTeacherAttendance,
   generateDailyAttendance,
+  getStudentAttendance,
 };
