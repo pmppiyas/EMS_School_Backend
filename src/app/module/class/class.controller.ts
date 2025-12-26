@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-import { ClassServices } from "./class.services";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { ClassServices } from './class.services';
 
 const createClass = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -82,6 +82,32 @@ const getClassTime = catchAsync(
   }
 );
 
+const deleteClassTime = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ClassServices.deleteClassTime(req.params.id);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Class time deleted successfully`,
+      data: result,
+    });
+  }
+);
+
+const updateClassTime = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ClassServices.updateClassTime(req.params.id, req.body);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Class time updated successfully`,
+      data: result,
+    });
+  }
+);
+
 export const ClassController = {
   createClass,
   getClasses,
@@ -89,4 +115,6 @@ export const ClassController = {
   editClass,
   addClassTime,
   getClassTime,
+  deleteClassTime,
+  updateClassTime,
 };

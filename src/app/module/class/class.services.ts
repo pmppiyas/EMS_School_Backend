@@ -1,6 +1,6 @@
-import { StatusCodes } from "http-status-codes";
-import prisma from "../../config/prisma";
-import { AppError } from "../../utils/appError";
+import { StatusCodes } from 'http-status-codes';
+import prisma from '../../config/prisma';
+import { AppError } from '../../utils/appError';
 
 const createClass = async (name: string) => {
   const isExist = await prisma.class.findUnique({
@@ -9,7 +9,7 @@ const createClass = async (name: string) => {
   if (isExist) {
     throw new AppError(
       StatusCodes.CONFLICT,
-      "Class with this name already exists"
+      'Class with this name already exists'
     );
   }
   return await prisma.class.create({
@@ -35,7 +35,7 @@ const deleteClass = async (id: string) => {
     where: { id },
   });
   if (!isExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Class not found");
+    throw new AppError(StatusCodes.NOT_FOUND, 'Class not found');
   }
   const result = await prisma.class.delete({
     where: { id },
@@ -48,7 +48,7 @@ const editClass = async (id: string, name: string) => {
     where: { id },
   });
   if (!isExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Class not found");
+    throw new AppError(StatusCodes.NOT_FOUND, 'Class not found');
   }
   return await prisma.class.update({
     where: { id },
@@ -77,7 +77,11 @@ const addClassTime = async (times: any[]) => {
 };
 
 const getClassTime = async () => {
-  const classes = await prisma.classTime.findMany();
+  const classes = await prisma.classTime.findMany({
+    orderBy: {
+      startTime: 'asc',
+    },
+  });
   const count = await prisma.classTime.count();
   return {
     classes,
@@ -87,6 +91,24 @@ const getClassTime = async () => {
   };
 };
 
+const deleteClassTime = async (classTimeId: string) => {
+  const result = await prisma.classTime.delete({
+    where: {
+      id: classTimeId,
+    },
+  });
+  return result;
+};
+
+const updateClassTime = async (id: string, payload: any) => {
+  const result = await prisma.classTime.update({
+    where: { id },
+    data: payload,
+  });
+
+  return result;
+};
+
 export const ClassServices = {
   createClass,
   getClasses,
@@ -94,4 +116,6 @@ export const ClassServices = {
   editClass,
   addClassTime,
   getClassTime,
+  deleteClassTime,
+  updateClassTime,
 };
