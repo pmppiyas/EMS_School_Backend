@@ -116,14 +116,24 @@ const markAttendance = async (
 };
 
 const getTeacherAttendance = async (date?: string) => {
-  const targetDate = date ? new Date(date) : new Date();
-  targetDate.setHours(0, 0, 0, 0);
+  let targetDate: Date;
 
-  const nextDay = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000);
+  if (date) {
+    targetDate = new Date(`${date}T00:00:00`);
+  } else {
+    const now = new Date();
+    targetDate = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+    targetDate.setUTCHours(0, 0, 0, 0);
+  }
+
+  const startRange = new Date(targetDate);
+  startRange.setHours(startRange.getHours() - 6);
+
+  const endRange = new Date(startRange.getTime() + 24 * 60 * 60 * 1000);
 
   const attendance = await prisma.attendance.findMany({
     where: {
-      createdAt: { gte: targetDate, lt: nextDay },
+      createdAt: { gte: startRange, lt: endRange },
       user: { role: 'TEACHER' },
     },
     include: {
@@ -131,14 +141,16 @@ const getTeacherAttendance = async (date?: string) => {
     },
   });
 
-  const presentTeachers: any[] = [];
-  const absentTeachers: any[] = [];
-  const lateTeachers: any[] = [];
+  const categories = {
+    PRESENT: [] as any[],
+    ABSENT: [] as any[],
+    LATE: [] as any[],
+    LEAVE: [] as any[],
+  };
 
   attendance.forEach((att) => {
     const teacher = att.user.teacher;
     if (!teacher) return;
-
     const info = {
       id: teacher.id,
       userId: att.userId,
@@ -147,40 +159,48 @@ const getTeacherAttendance = async (date?: string) => {
       inTime: att.inTime,
       outTime: att.outTime,
     };
-
-    if (att.status === IAttendStatus.PRESENT) presentTeachers.push(info);
-    else if (att.status === IAttendStatus.ABSENT) absentTeachers.push(info);
-    else if (att.status === IAttendStatus.LATE) lateTeachers.push(info);
+    if (categories[att.status as keyof typeof categories]) {
+      categories[att.status as keyof typeof categories].push(info);
+    }
   });
 
   return {
-    date: targetDate.toISOString().split('T')[0],
+    date: date || targetDate.toISOString().split('T')[0],
     teacher: {
-      present: { total: presentTeachers.length, list: presentTeachers },
-      absent: { total: absentTeachers.length, list: absentTeachers },
-      late: { total: lateTeachers.length, list: lateTeachers },
+      present: { total: categories.PRESENT.length, list: categories.PRESENT },
+      absent: { total: categories.ABSENT.length, list: categories.ABSENT },
+      late: { total: categories.LATE.length, list: categories.LATE },
+      leave: { total: categories.LEAVE.length, list: categories.LEAVE },
     },
   };
 };
 
 const getStudentAttendance = async (date?: string) => {
-  const BDT_OFFSET = 6 * 60;
+  let targetDate: Date;
 
-  const now = date ? new Date(date) : new Date();
-  const targetDateBDT = new Date(
-    now.getTime() + (BDT_OFFSET + now.getTimezoneOffset()) * 60 * 1000
-  );
-  targetDateBDT.setHours(0, 0, 0, 0);
+  if (date) {
+    targetDate = new Date(`${date}T00:00:00`);
+  } else {
+    const now = new Date();
+    targetDate = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+    targetDate.setUTCHours(0, 0, 0, 0);
+  }
 
-  const nextDayBDT = new Date(targetDateBDT.getTime() + 24 * 60 * 60 * 1000);
+  const startRange = new Date(targetDate);
+  startRange.setHours(startRange.getHours() - 6);
+  const endRange = new Date(startRange.getTime() + 24 * 60 * 60 * 1000);
 
   const attendance = await prisma.attendance.findMany({
     where: {
-      createdAt: { gte: targetDateBDT, lt: nextDayBDT },
+      createdAt: { gte: startRange, lt: endRange },
       user: { role: 'STUDENT' },
     },
     include: {
-      user: true,
+      user: {
+        include: {
+          student: true,
+        },
+      },
       class: true,
     },
   });
@@ -189,23 +209,14 @@ const getStudentAttendance = async (date?: string) => {
   const absentStudents: any[] = [];
   const lateStudents: any[] = [];
 
-  attendance.forEach(async (att) => {
-    const student = att.user;
-    if (!student) return;
-    const stuInfo = await prisma.student.findUnique({
-      where: {
-        userId: student.id,
-      },
-      select: {
-        firstName: true,
-        lastName: true,
-      },
-    });
+  attendance.forEach((att) => {
+    const studentInfo = att.user?.student;
+    if (!studentInfo) return;
 
     const info = {
-      id: student.id,
+      id: att.user.id,
       userId: att.userId,
-      name: `${stuInfo?.firstName} ${stuInfo?.lastName}`,
+      name: `${studentInfo.firstName} ${studentInfo.lastName}`,
       classId: att.classId,
       className: att.class?.name || 'UNKNOWN',
       status: att.status,
@@ -216,10 +227,13 @@ const getStudentAttendance = async (date?: string) => {
     if (att.status === IAttendStatus.PRESENT) presentStudents.push(info);
     else if (att.status === IAttendStatus.ABSENT) absentStudents.push(info);
     else if (att.status === IAttendStatus.LATE) lateStudents.push(info);
+    else {
+      absentStudents.push(info);
+    }
   });
 
   return {
-    date: targetDateBDT.toISOString().split('T')[0],
+    date: date || targetDate.toISOString().split('T')[0],
     student: {
       present: { total: presentStudents.length, list: presentStudents },
       absent: { total: absentStudents.length, list: absentStudents },

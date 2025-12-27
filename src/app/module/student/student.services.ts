@@ -2,22 +2,59 @@ import { get } from 'http';
 import prisma from '../../config/prisma';
 import { IUser, Role } from '../user/user.interface';
 import { Prisma } from '@prisma/client';
+import { AppError } from '../../utils/appError';
+import httpStatus from 'http-status-codes';
 
-const allStudents = async () => {
+const allStudents = async (classId?: string) => {
+  const whereCondition: any = {};
+  let className: string = 'All Classes';
+
+  if (classId) {
+    const existClass = await prisma.class.findUnique({
+      where: { id: classId },
+    });
+
+    className = existClass?.name as string;
+
+    if (!existClass) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Class not found');
+    }
+    whereCondition.classId = classId;
+  }
+
   const students = await prisma.student.findMany({
+    where: whereCondition,
     include: {
       class: {
         select: {
           name: true,
+          id: true,
         },
       },
     },
+
+    orderBy: [
+      {
+        class: {
+          name: 'asc',
+        },
+      },
+      {
+        firstName: 'asc',
+      },
+    ],
   });
-  const total = await prisma.student.count();
-  console.log(students);
+
+  const total = await prisma.student.count({
+    where: whereCondition,
+  });
+
   return {
     students,
-    total,
+    meta: {
+      className,
+      total,
+    },
   };
 };
 

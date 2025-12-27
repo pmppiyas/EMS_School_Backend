@@ -7,7 +7,8 @@ import { IUser, Role } from '../user/user.interface';
 
 const allStudents = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await StudentServices.allStudents();
+    const { classId } = req.query;
+    const result = await StudentServices.allStudents(classId as string);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

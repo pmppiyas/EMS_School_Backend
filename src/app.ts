@@ -31,7 +31,10 @@ cron.schedule('0 8 * * *', () => {
   AttendServices.generateDailyAttendance();
 });
 
-
+// setInterval(() => {
+//   AttendServices.generateDailyAttendance();
+//   console.log('RUn');
+// }, 5 * 1000);
 
 app.use((req, res, next) => {
   res.status(404).json({

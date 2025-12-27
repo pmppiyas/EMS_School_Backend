@@ -1,8 +1,8 @@
 export enum IAttendStatus {
-  PRESENT = "PRESENT",
-  ABSENT = "ABSENT",
-  LATE = "LATE",
-  LEAVE = "LEAVE",
+  PRESENT = 'PRESENT',
+  ABSENT = 'ABSENT',
+  LATE = 'LATE',
+  LEAVE = 'LEAVE',
 }
 
 export interface IAttendRecord {
