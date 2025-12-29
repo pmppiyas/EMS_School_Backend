@@ -3,21 +3,25 @@ import prisma from '../../config/prisma';
 import { AppError } from '../../utils/appError';
 import { Role } from '../user/user.interface';
 import { IAttendStatus } from './attend.interface';
-import { formatBDTime } from '../../utils/dateFormat';
 
 const markAttendance = async (
   payload: {
-    classId?: string;
-    records: { userId: string; inTime?: string; outTime?: string }[];
+    records: {
+      userId: string;
+      inTime?: string;
+      outTime?: string;
+      status?: IAttendStatus;
+    }[];
   },
   user: { email: string }
 ) => {
-  const { classId, records } = payload;
-
+  const { records } = payload;
   const now = new Date();
-  const bdtNow = new Date(now.getTime() + 6 * 60 * 60 * 1000);
-  const today = new Date(bdtNow);
-  today.setUTCHours(0, 0, 0, 0);
+
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
 
   const firstPeriod = await prisma.classTime.findFirst({
     orderBy: { startTime: 'asc' },
@@ -42,7 +46,7 @@ const markAttendance = async (
     for (const rec of records) {
       const existUser = await tx.user.findUnique({
         where: { id: rec.userId },
-        select: { id: true, role: true },
+        include: { student: true },
       });
 
       if (!existUser)
@@ -51,12 +55,31 @@ const markAttendance = async (
           `User not found: ${rec.userId}`
         );
 
+      const existAttendance = await tx.attendance.findFirst({
+        where: {
+          userId: rec.userId,
+          createdAt: { gte: startOfDay, lt: endOfDay },
+        },
+      });
+
+      const attendanceData: any = {
+        notedBy: user.email,
+        classId:
+          existUser.role === 'STUDENT' ? existUser.student?.classId : null,
+      };
+
+      if (rec.inTime) attendanceData.inTime = new Date(rec.inTime);
+      if (rec.outTime) attendanceData.outTime = new Date(rec.outTime);
+
       let finalStatus: IAttendStatus;
 
-      if (rec.outTime) {
+      const currentOutTime = rec.outTime || existAttendance?.outTime;
+      const currentInTime = rec.inTime || existAttendance?.inTime;
+
+      if (currentOutTime) {
         finalStatus = IAttendStatus.LEAVE;
-      } else if (rec.inTime) {
-        const inDateUTC = new Date(rec.inTime);
+      } else if (currentInTime) {
+        const inDateUTC = new Date(currentInTime);
         const hours = inDateUTC.getUTCHours();
         const minutes = inDateUTC.getUTCMinutes();
 
@@ -72,28 +95,7 @@ const markAttendance = async (
         finalStatus = IAttendStatus.ABSENT;
       }
 
-      summary[finalStatus].count++;
-      summary[finalStatus].users.push(rec.userId);
-
-      const targetClassId = existUser.role === 'STUDENT' ? classId : null;
-
-      const existAttendance = await tx.attendance.findFirst({
-        where: {
-          userId: rec.userId,
-          createdAt: {
-            gte: new Date(today.getTime() - 6 * 60 * 60 * 1000),
-            lt: new Date(today.getTime() + 18 * 60 * 60 * 1000),
-          },
-        },
-      });
-
-      const attendanceData = {
-        status: finalStatus,
-        inTime: rec.inTime ? new Date(rec.inTime) : null,
-        outTime: rec.outTime ? new Date(rec.outTime) : null,
-        notedBy: user.email,
-        classId: targetClassId,
-      };
+      attendanceData.status = finalStatus;
 
       if (existAttendance) {
         await tx.attendance.update({
@@ -109,6 +111,9 @@ const markAttendance = async (
           },
         });
       }
+
+      summary[finalStatus].count++;
+      summary[finalStatus].users.push(rec.userId);
     }
 
     return summary;

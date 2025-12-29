@@ -13,7 +13,7 @@ export interface createStudentInput {
   address: string;
   dateOfBirth?: string;
   class: Class;
-  roll: string;
+  roll: number;
   gender?: Gender;
 }
 
@@ -40,27 +40,27 @@ export interface createTeacherInput {
   gender: Gender;
 }
 
-export type Gender = "MALE" | "FEMALE";
+export type Gender = 'MALE' | 'FEMALE';
 
 export enum Role {
-  ADMIN = "ADMIN",
-  TEACHER = "TEACHER",
-  STUDENT = "STUDENT",
+  ADMIN = 'ADMIN',
+  TEACHER = 'TEACHER',
+  STUDENT = 'STUDENT',
 }
 
 export enum UserStatus {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  DELETED = "DELETED",
-  SUSPENDED = "SUSPENDED",
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  DELETED = 'DELETED',
+  SUSPENDED = 'SUSPENDED',
 }
 
 export enum Class {
-  PLAYGROUP = "PLAYGROUP",
-  NURSERY = "NURSERY",
-  STANDARD1 = "STANDARD1",
-  STANDARD2 = "STANDARD2",
-  STANDARD3 = "STANDARD3",
-  STANDARD4 = "STANDARD4",
-  STANDARD5 = "STANDARD5",
+  PLAYGROUP = 'PLAYGROUP',
+  NURSERY = 'NURSERY',
+  STANDARD1 = 'STANDARD1',
+  STANDARD2 = 'STANDARD2',
+  STANDARD3 = 'STANDARD3',
+  STANDARD4 = 'STANDARD4',
+  STANDARD5 = 'STANDARD5',
 }

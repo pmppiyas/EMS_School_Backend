@@ -1,16 +1,16 @@
-import bcrypt from "bcryptjs";
-import { Request } from "express";
-import { StatusCodes } from "http-status-codes";
-import { env } from "../../config/env";
-import prisma from "../../config/prisma";
-import { AppError } from "../../utils/appError";
+import bcrypt from 'bcryptjs';
+import { Request } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import { env } from '../../config/env';
+import prisma from '../../config/prisma';
+import { AppError } from '../../utils/appError';
 
 import {
   createAdminInput,
   createStudentInput,
   createTeacherInput,
   UserStatus,
-} from "./user.interface";
+} from './user.interface';
 
 const getAllUser = async () => {
   const user = await prisma.user.findMany();
@@ -23,6 +23,7 @@ const createStudent = async (req: Request) => {
     body,
     file,
   }: { body: createStudentInput; file?: Express.Multer.File } = req;
+  console.log(body);
 
   const hashPassword = await bcrypt.hash(body.password as string, Number(salt));
 
@@ -41,7 +42,7 @@ const createStudent = async (req: Request) => {
         email: body.email,
         address: body.address!,
         classId: body.class,
-        roll: body.roll,
+        roll: Number(body.roll),
         gender: body.gender!,
         dateOfBirth: body.dateOfBirth!,
         phoneNumber: body.phoneNumber!,
@@ -64,7 +65,7 @@ const createAdmin = async (req: Request) => {
       data: {
         email: body.email,
         password: hashPassword,
-        role: "ADMIN",
+        role: 'ADMIN',
       },
     });
 
@@ -104,7 +105,7 @@ const createTeacher = async (req: Request) => {
     if (exist) {
       throw new AppError(
         StatusCodes.CONFLICT,
-        "User already exist by this email"
+        'User already exist by this email'
       );
     }
 
@@ -112,7 +113,7 @@ const createTeacher = async (req: Request) => {
       data: {
         email: body.email,
         password: hashPassword,
-        role: "TEACHER",
+        role: 'TEACHER',
       },
     });
 
@@ -135,7 +136,7 @@ const createTeacher = async (req: Request) => {
 
 const changeUserStatus = async (id: string, status: UserStatus) => {
   if (!status) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "Status is required");
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Status is required');
   }
   const user = await prisma.user.findUniqueOrThrow({
     where: {
@@ -150,7 +151,7 @@ const changeUserStatus = async (id: string, status: UserStatus) => {
   }
 
   if (user.status === UserStatus.SUSPENDED) {
-    throw new AppError(StatusCodes.NOT_ACCEPTABLE, "User is already suspended");
+    throw new AppError(StatusCodes.NOT_ACCEPTABLE, 'User is already suspended');
   }
 
   const updatedStatus = await prisma.user.update({

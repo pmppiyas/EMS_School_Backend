@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-import { UserStatus } from "./user.interface";
-import { UserServices } from "./user.services";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { UserStatus } from './user.interface';
+import { UserServices } from './user.services';
 
 const getAllUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -12,7 +12,7 @@ const getAllUser = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "All user retrieved successfully",
+      message: 'All user retrieved successfully',
       data: result,
     });
   }
@@ -25,7 +25,7 @@ const createStudent = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
-      message: "Student create successfully",
+      message: 'Student create successfully',
       data: result,
     });
   }
@@ -38,7 +38,7 @@ const createAdmin = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
-      message: "Admin create successfully",
+      message: 'Admin create successfully',
       data: result,
     });
   }
@@ -46,7 +46,7 @@ const createAdmin = catchAsync(
 
 const createTeacher = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log("Create Controoler", {
+    console.log('Create Controoler', {
       file: req.file,
       data: req.body,
     });
@@ -56,7 +56,7 @@ const createTeacher = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
-      message: "Teacher create successfully",
+      message: 'Teacher create successfully',
       data: result,
     });
   }

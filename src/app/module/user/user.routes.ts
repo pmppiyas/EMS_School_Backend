@@ -47,4 +47,3 @@ router.put(
 );
 
 export const userRoutes = router;
-

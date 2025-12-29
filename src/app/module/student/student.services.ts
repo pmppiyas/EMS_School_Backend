@@ -31,6 +31,13 @@ const allStudents = async (classId?: string) => {
           id: true,
         },
       },
+      user: {
+        select: {
+          attendances: true,
+          status: true,
+          needPasswordChange: true,
+        },
+      },
     },
 
     orderBy: [
@@ -40,7 +47,7 @@ const allStudents = async (classId?: string) => {
         },
       },
       {
-        firstName: 'asc',
+        roll: 'asc',
       },
     ],
   });

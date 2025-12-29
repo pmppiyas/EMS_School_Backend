@@ -9,7 +9,7 @@ model Student {
   classId         String?
   class           Class?           @relation(fields: [classId], references: [id])
   subjects        Subject[]
-  roll            String
+  roll            Int
   gender          Gender
   userId          String           @unique
   user            User             @relation(fields: [userId], references: [id])

@@ -3,7 +3,18 @@ import prisma from '../../config/prisma';
 import { AppError } from '../../utils/appError';
 import { Prisma } from '@prisma/client';
 const allTeachers = async () => {
-  const teachers = await prisma.teacher.findMany();
+  const teachers = await prisma.teacher.findMany({
+    include: {
+      user: {
+        select: {
+          attendances: true,
+          status: true,
+          needPasswordChange: true,
+        },
+      },
+      classSchedules: true,
+    },
+  });
   const total = await prisma.teacher.count();
   return {
     teachers,

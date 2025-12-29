@@ -5,14 +5,8 @@ export const validateRequest =
   (schema: ZodObject<any>) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log('=== VALIDATION MIDDLEWARE DEBUG ===');
-      console.log('req.body:', JSON.stringify(req.body, null, 2));
-      console.log('req.file:', req.file);
-      console.log('Content-Type:', req.headers['content-type']);
-
       // Check if body exists at all
       if (!req.body || Object.keys(req.body).length === 0) {
-        console.error('❌ req.body is empty or undefined');
         return res.status(400).json({
           success: false,
           message:
@@ -20,20 +14,15 @@ export const validateRequest =
         });
       }
 
-      // Extract data from the `data` field (multipart/form-data)
       let bodyData = req.body;
 
       if (req.body.data) {
-        console.log('Found req.body.data:', req.body.data);
         try {
           bodyData =
             typeof req.body.data === 'string'
               ? JSON.parse(req.body.data)
               : req.body.data;
-          bodyData.class = 'ade00077-4cea-4632-a160-5d44ac6b89ef';
-          console.log('Parsed bodyData:', bodyData);
         } catch (parseError) {
-          console.error('Failed to parse req.body.data:', parseError);
           return res.status(400).json({
             success: false,
             message: 'Invalid JSON in data field',
@@ -42,11 +31,6 @@ export const validateRequest =
       } else {
         console.log('No req.body.data found, using req.body directly');
       }
-
-      console.log(
-        'Final bodyData to validate:',
-        JSON.stringify(bodyData, null, 2)
-      );
 
       // Parse with Zod
       const parsed = schema.safeParse(bodyData);
@@ -63,15 +47,11 @@ export const validateRequest =
         });
       }
 
-      console.log('✅ Validation successful');
-
-      // Replace body with validated data
       req.body = parsed.data;
 
-      // Attach file if present
       if (req.file) {
-        req.body.photoUrl = req.file.path; // Cloudinary URL
-        req.body.photoPublicId = req.file.filename; // Cloudinary public_id
+        req.body.photoUrl = req.file.path;
+        req.body.photoPublicId = req.file.filename;
       }
 
       next();

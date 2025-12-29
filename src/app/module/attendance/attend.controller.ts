@@ -15,7 +15,7 @@ const markAttendance = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: 'Attendance create successfully',
+      message: 'Attendance updated successfully',
       data: result,
     });
   }
