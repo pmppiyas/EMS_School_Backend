@@ -11,6 +11,7 @@ import {
   createTeacherInput,
   UserStatus,
 } from './user.interface';
+import { Gender } from '@prisma/client';
 
 const getAllUser = async () => {
   const user = await prisma.user.findMany();
@@ -19,11 +20,8 @@ const getAllUser = async () => {
 
 const createStudent = async (req: Request) => {
   const salt = env.BCRYPT.SALTNUMBER;
-  const {
-    body,
-    file,
-  }: { body: createStudentInput; file?: Express.Multer.File } = req;
-  console.log(body);
+
+  const { body }: { body: createStudentInput } = req;
 
   const hashPassword = await bcrypt.hash(body.password as string, Number(salt));
 
@@ -35,28 +33,31 @@ const createStudent = async (req: Request) => {
       },
     });
 
-    return await tnx.student.create({
+    const student = await tnx.student.create({
       data: {
         firstName: body.firstName,
         lastName: body.lastName,
         email: body.email,
-        address: body.address!,
-        classId: body.class,
         roll: Number(body.roll),
-        gender: body.gender!,
-        dateOfBirth: body.dateOfBirth!,
-        phoneNumber: body.phoneNumber!,
+        gender: body.gender as Gender,
+        phoneNumber: body.phoneNumber || null,
+        address: body.address || null,
+        photo: body.photoUrl,
+        dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null,
+        classId: body.classId || null,
         userId: user.id,
       },
     });
+
+    return student;
   });
+
   return result;
 };
 
 const createAdmin = async (req: Request) => {
   const salt = env.BCRYPT.SALTNUMBER;
-  const { body, file }: { body: createAdminInput; file?: Express.Multer.File } =
-    req;
+  const { body }: { body: createAdminInput } = req;
 
   const hashPassword = await bcrypt.hash(body.password as string, Number(salt));
 
@@ -88,10 +89,7 @@ const createAdmin = async (req: Request) => {
 
 const createTeacher = async (req: Request) => {
   const salt = env.BCRYPT.SALTNUMBER;
-  const {
-    body,
-    file,
-  }: { body: createTeacherInput; file?: Express.Multer.File } = req;
+  const { body }: { body: createTeacherInput } = req;
 
   const hashPassword = await bcrypt.hash(body.password as string, Number(salt));
 
@@ -122,6 +120,7 @@ const createTeacher = async (req: Request) => {
         firstName: body.firstName,
         lastName: body.lastName,
         email: body.email,
+        photo: body.photoUrl,
         address: body.address!,
         gender: body.gender!,
         phoneNumber: body.phoneNumber!,

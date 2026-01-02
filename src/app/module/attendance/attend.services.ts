@@ -8,20 +8,20 @@ const markAttendance = async (
   payload: {
     records: {
       userId: string;
-      inTime?: string;
-      outTime?: string;
+      inTime?: string | null;
+      outTime?: string | null;
       status?: IAttendStatus;
     }[];
   },
   user: { email: string }
 ) => {
   const { records } = payload;
+
   const now = new Date();
 
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date();
-  endOfDay.setHours(23, 59, 59, 999);
+  const bdtNow = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+  const today = new Date(bdtNow);
+  today.setUTCHours(0, 0, 0, 0);
 
   const firstPeriod = await prisma.classTime.findFirst({
     orderBy: { startTime: 'asc' },
@@ -31,8 +31,10 @@ const markAttendance = async (
     throw new AppError(StatusCodes.NOT_FOUND, 'No class schedule found');
   }
 
-  const CLASS_START_HOUR = parseInt(firstPeriod.startTime.split(':')[0]);
-  const CLASS_START_MINUTE = parseInt(firstPeriod.startTime.split(':')[1]);
+  const [CLASS_START_HOUR, CLASS_START_MINUTE] = firstPeriod.startTime
+    .split(':')
+    .map(Number);
+
   const LATE_MINUTE_LIMIT = CLASS_START_MINUTE + 5;
 
   return await prisma.$transaction(async (tx) => {
@@ -44,42 +46,34 @@ const markAttendance = async (
     };
 
     for (const rec of records) {
+      if (
+        rec.inTime === undefined &&
+        rec.outTime === undefined &&
+        rec.status === undefined
+      ) {
+        continue;
+      }
+
       const existUser = await tx.user.findUnique({
         where: { id: rec.userId },
-        include: { student: true },
+        select: { id: true, role: true },
       });
 
-      if (!existUser)
+      if (!existUser) {
         throw new AppError(
           StatusCodes.NOT_FOUND,
           `User not found: ${rec.userId}`
         );
+      }
 
-      const existAttendance = await tx.attendance.findFirst({
-        where: {
-          userId: rec.userId,
-          createdAt: { gte: startOfDay, lt: endOfDay },
-        },
-      });
+      let finalStatus: IAttendStatus | undefined;
 
-      const attendanceData: any = {
-        notedBy: user.email,
-        classId:
-          existUser.role === 'STUDENT' ? existUser.student?.classId : null,
-      };
-
-      if (rec.inTime) attendanceData.inTime = new Date(rec.inTime);
-      if (rec.outTime) attendanceData.outTime = new Date(rec.outTime);
-
-      let finalStatus: IAttendStatus;
-
-      const currentOutTime = rec.outTime || existAttendance?.outTime;
-      const currentInTime = rec.inTime || existAttendance?.inTime;
-
-      if (currentOutTime) {
+      if (rec.inTime === null) {
+        finalStatus = IAttendStatus.ABSENT;
+      } else if (rec.outTime && rec.inTime !== null) {
         finalStatus = IAttendStatus.LEAVE;
-      } else if (currentInTime) {
-        const inDateUTC = new Date(currentInTime);
+      } else if (rec.inTime) {
+        const inDateUTC = new Date(rec.inTime);
         const hours = inDateUTC.getUTCHours();
         const minutes = inDateUTC.getUTCMinutes();
 
@@ -91,11 +85,51 @@ const markAttendance = async (
         } else {
           finalStatus = IAttendStatus.PRESENT;
         }
+      } else if (rec.status) {
+        finalStatus = rec.status;
       } else {
-        finalStatus = IAttendStatus.ABSENT;
+        continue;
       }
 
-      attendanceData.status = finalStatus;
+      summary[finalStatus].count++;
+      summary[finalStatus].users.push(rec.userId);
+
+      let targetClassId: string | null = null;
+
+      if (existUser.role === 'STUDENT') {
+        const userData = await tx.user.findUnique({
+          where: { id: existUser.id },
+          include: { student: { select: { classId: true } } },
+        });
+        targetClassId = userData?.student?.classId ?? null;
+      }
+
+      const existAttendance = await tx.attendance.findFirst({
+        where: {
+          userId: rec.userId,
+          createdAt: {
+            gte: new Date(today.getTime() - 6 * 60 * 60 * 1000),
+            lt: new Date(today.getTime() + 18 * 60 * 60 * 1000),
+          },
+        },
+      });
+
+      const attendanceData: any = {
+        status: finalStatus,
+        notedBy: user.email,
+        classId: targetClassId,
+      };
+
+      if (rec.inTime === null) {
+        attendanceData.inTime = null;
+        attendanceData.outTime = null;
+      } else if (rec.inTime !== undefined) {
+        attendanceData.inTime = rec.inTime ? new Date(rec.inTime) : null;
+      }
+
+      if (rec.outTime !== undefined && rec.inTime !== null) {
+        attendanceData.outTime = rec.outTime ? new Date(rec.outTime) : null;
+      }
 
       if (existAttendance) {
         await tx.attendance.update({
@@ -111,9 +145,6 @@ const markAttendance = async (
           },
         });
       }
-
-      summary[finalStatus].count++;
-      summary[finalStatus].users.push(rec.userId);
     }
 
     return summary;
@@ -146,6 +177,8 @@ const getTeacherAttendance = async (date?: string) => {
     },
   });
 
+  const totalTeacher = await prisma.teacher.count({});
+
   const categories = {
     PRESENT: [] as any[],
     ABSENT: [] as any[],
@@ -172,6 +205,7 @@ const getTeacherAttendance = async (date?: string) => {
   return {
     date: date || targetDate.toISOString().split('T')[0],
     teacher: {
+      total: totalTeacher,
       present: { total: categories.PRESENT.length, list: categories.PRESENT },
       absent: { total: categories.ABSENT.length, list: categories.ABSENT },
       late: { total: categories.LATE.length, list: categories.LATE },
@@ -210,16 +244,21 @@ const getStudentAttendance = async (date?: string) => {
     },
   });
 
-  const presentStudents: any[] = [];
-  const absentStudents: any[] = [];
-  const lateStudents: any[] = [];
+  const totalStudent = await prisma.student.count({});
+
+  const categories = {
+    PRESENT: [] as any[],
+    ABSENT: [] as any[],
+    LATE: [] as any[],
+    LEAVE: [] as any[],
+  };
 
   attendance.forEach((att) => {
     const studentInfo = att.user?.student;
     if (!studentInfo) return;
 
     const info = {
-      id: att.user.id,
+      id: studentInfo.id,
       userId: att.userId,
       name: `${studentInfo.firstName} ${studentInfo.lastName}`,
       classId: att.classId,
@@ -229,20 +268,31 @@ const getStudentAttendance = async (date?: string) => {
       outTime: att.outTime,
     };
 
-    if (att.status === IAttendStatus.PRESENT) presentStudents.push(info);
-    else if (att.status === IAttendStatus.ABSENT) absentStudents.push(info);
-    else if (att.status === IAttendStatus.LATE) lateStudents.push(info);
-    else {
-      absentStudents.push(info);
+    if (categories[att.status as keyof typeof categories]) {
+      categories[att.status as keyof typeof categories].push(info);
     }
   });
 
   return {
     date: date || targetDate.toISOString().split('T')[0],
     student: {
-      present: { total: presentStudents.length, list: presentStudents },
-      absent: { total: absentStudents.length, list: absentStudents },
-      late: { total: lateStudents.length, list: lateStudents },
+      total: totalStudent,
+      present: {
+        total: categories.PRESENT.length,
+        list: categories.PRESENT,
+      },
+      absent: {
+        total: categories.ABSENT.length,
+        list: categories.ABSENT,
+      },
+      late: {
+        total: categories.LATE.length,
+        list: categories.LATE,
+      },
+      leave: {
+        total: categories.LEAVE.length,
+        list: categories.LEAVE,
+      },
     },
   };
 };

@@ -5,7 +5,6 @@ export const validateRequest =
   (schema: ZodObject<any>) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Check if body exists at all
       if (!req.body || Object.keys(req.body).length === 0) {
         return res.status(400).json({
           success: false,
@@ -32,18 +31,17 @@ export const validateRequest =
         console.log('No req.body.data found, using req.body directly');
       }
 
-      // Parse with Zod
       const parsed = schema.safeParse(bodyData);
 
       if (!parsed.success) {
         console.error(
           'Zod validation failed:',
-          JSON.stringify(parsed.error.errors, null, 2)
+          JSON.stringify(parsed.error.issues, null, 2)
         );
         return res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: parsed.error.errors,
+          errors: parsed.error.issues,
         });
       }
 
@@ -56,7 +54,6 @@ export const validateRequest =
 
       next();
     } catch (error) {
-      console.error('Validation middleware error:', error);
       return res.status(400).json({
         success: false,
         message: 'Validation middleware error',

@@ -10,11 +10,12 @@ export interface createStudentInput {
   email: string;
   password: string;
   phoneNumber?: string;
-  address: string;
+  address?: string;
   dateOfBirth?: string;
-  class: Class;
-  roll: number;
-  gender?: Gender;
+  photoUrl?: string;
+  classId: string;
+  roll: string;
+  gender: 'MALE' | 'FEMALE';
 }
 
 export interface createAdminInput {
@@ -23,6 +24,7 @@ export interface createAdminInput {
   email: string;
   password: string;
   phoneNumber?: string;
+  photoUrl?: string;
   address?: string;
   gender?: Gender;
   designation?: string;
@@ -34,6 +36,7 @@ export interface createTeacherInput {
   email: string;
   password: string;
   phoneNumber?: string;
+  photoUrl?: string;
   address?: string;
   dateOfBirth?: string;
   designation?: string;

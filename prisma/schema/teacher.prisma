@@ -3,6 +3,7 @@ model Teacher {
   firstName      String
   lastName       String
   email          String          @unique
+  photo          String?
   phoneNumber    String?
   address        String?
   dateOfBirth    DateTime?

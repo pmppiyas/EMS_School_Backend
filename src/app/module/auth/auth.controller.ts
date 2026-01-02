@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-import { AuthServices } from "./auth.services";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { AuthServices } from './auth.services';
 
 const crdLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -10,24 +10,26 @@ const crdLogin = catchAsync(
 
     const { accessToken, refreshToken, needPasswordChange } = result;
 
-    res.cookie("accessToken", accessToken, {
-      secure: false,
+    res.cookie('accessToken', accessToken, {
+      secure: true,
       httpOnly: true,
-      sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
-    res.cookie("refreshToken", refreshToken, {
-      secure: false,
+    res.cookie('refreshToken', refreshToken, {
+      secure: true,
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: 'lax',
+      path: '/',
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "Credientials login successfully",
+      message: 'Credientials login successfully',
       data: {
         needPasswordChange,
       },
@@ -42,34 +44,34 @@ const getMe = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "Self data retrived successfully",
+      message: 'Self data retrived successfully',
       data: result,
     });
   }
 );
 
-const logout = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    res.clearCookie("accessToken", {
-      secure: true,
-      httpOnly: true,
-      sameSite: "none",
-    });
+const logout = catchAsync(async (req: Request, res: Response) => {
+  res.clearCookie('accessToken', {
+    secure: true,
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+  });
 
-    res.clearCookie("refreshToken", {
-      secure: true,
-      httpOnly: true,
-      sameSite: "none",
-    });
+  res.clearCookie('refreshToken', {
+    secure: true,
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+  });
 
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-      message: "Logged out successfully",
-      data: null,
-    });
-  }
-);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Logged out successfully',
+    data: null,
+  });
+});
 
 const refreshToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -77,17 +79,17 @@ const refreshToken = catchAsync(
 
     const result = await AuthServices.refreshToken(refreshToken);
 
-    res.cookie("accessToken", result.accessToken, {
+    res.cookie('accessToken', result.accessToken, {
       secure: true,
       httpOnly: true,
-      sameSite: "none",
+      sameSite: 'none',
       maxAge: 1000 * 60 * 60,
     });
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "Refreash token retrieved successfully",
+      message: 'Refreash token retrieved successfully',
       data: {
         needPasswordChange: result.needPasswordChange,
       },

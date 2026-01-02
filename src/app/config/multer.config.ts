@@ -1,28 +1,28 @@
-import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { cloudinary } from "./cloudinary.config";
+import multer from 'multer';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { cloudinary } from './cloudinary.config';
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
     const fileName = file.originalname
       .toLowerCase()
-      .replace(/\s+/g, "_")
-      .replace(/\./g, "_")
-      .replace(/[^a-z0-9_]/gi, "");
+      .replace(/\s+/g, '_')
+      .replace(/\./g, '_')
+      .replace(/[^a-z0-9_]/gi, '');
 
-    const extension = file.originalname.split(".").pop();
+    const extension = file.originalname.split('.').pop();
     const uniqueFileName =
       Math.random().toString(36).substring(2) +
-      "-" +
+      '-' +
       Date.now() +
-      "-" +
+      '-' +
       fileName;
 
     return {
-      folder: "teachers", // Optional: organize in folders
+      folder: 'school',
       public_id: uniqueFileName,
-      resource_type: "auto", // Add this
+      resource_type: 'auto',
     };
   },
 });
@@ -30,14 +30,13 @@ const storage = new CloudinaryStorage({
 export const multerUpload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
-    // Optional: validate file types
-    if (file.mimetype.startsWith("image/")) {
+    if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed"));
+      cb(new Error('Only image files are allowed'));
     }
   },
 });

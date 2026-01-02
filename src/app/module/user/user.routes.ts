@@ -19,7 +19,7 @@ router.get('/', UserController.getAllUser);
 
 router.post(
   '/create_student',
-  upload.none(),
+  multerUpload.single('photo'),
   validateRequest(createStudentZodSchema),
   UserController.createStudent
 );
