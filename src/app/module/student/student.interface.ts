@@ -49,5 +49,17 @@ export interface ISubject {
   code: string;
 }
 
+export type IOptions = {
+  page?: string | number;
+  limit?: string | number;
+  sortBy?: string;
+  sortOrder?: string;
+};
 
-export
+export type IOptionsResult = {
+  page: number;
+  limit: number;
+  skip: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};

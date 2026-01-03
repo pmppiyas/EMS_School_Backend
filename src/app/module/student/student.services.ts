@@ -1,66 +1,111 @@
 import { get } from 'http';
 import prisma from '../../config/prisma';
 import { IUser, Role } from '../user/user.interface';
-import { Prisma } from '@prisma/client';
+import { Gender, Prisma } from '@prisma/client';
 import { AppError } from '../../utils/appError';
 import httpStatus from 'http-status-codes';
+import { IOptions } from './student.interface';
+import { calculatePagination } from '../../utils/calculatePagination';
 
-const allStudents = async (classId?: string) => {
-  const whereCondition: any = {};
-  let className: string = 'All Classes';
+const allStudents = async (
+  classId?: string,
+  params?: any,
+  options?: IOptions
+) => {
+  const { page, limit, skip, sortOrder, sortBy } = calculatePagination(
+    options as IOptions
+  );
+
+  const { searchTerm } = params || {};
+
+  const effectivePage = searchTerm ? 1 : page;
+  const effectiveSkip = searchTerm ? 0 : skip;
+
+  const andConditions: Prisma.StudentWhereInput[] = [];
+
+  if (searchTerm) {
+    const orConditions: Prisma.StudentWhereInput[] = [
+      {
+        firstName: {
+          contains: searchTerm,
+          mode: 'insensitive',
+        },
+      },
+      {
+        lastName: {
+          contains: searchTerm,
+          mode: 'insensitive',
+        },
+      },
+    ];
+
+    if (!isNaN(Number(searchTerm))) {
+      orConditions.push({
+        roll: Number(searchTerm),
+      });
+    }
+
+    andConditions.push({ OR: orConditions });
+  }
+
+  let className = 'All Classes';
 
   if (classId) {
     const existClass = await prisma.class.findUnique({
       where: { id: classId },
     });
 
-    className = existClass?.name as string;
-
     if (!existClass) {
       throw new AppError(httpStatus.NOT_FOUND, 'Class not found');
     }
-    whereCondition.classId = classId;
+
+    className = existClass.name;
+    andConditions.push({ classId });
   }
 
+  const whereConditions: Prisma.StudentWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const orderBy: Prisma.StudentOrderByWithRelationInput =
+    sortBy && sortOrder
+      ? { [sortBy]: sortOrder as Prisma.SortOrder }
+      : { roll: Prisma.SortOrder.asc };
+
   const students = await prisma.student.findMany({
-    where: whereCondition,
+    where: whereConditions,
+    skip: effectiveSkip,
+    take: limit,
+    orderBy,
     include: {
       class: {
-        select: {
-          name: true,
-          id: true,
-        },
+        select: { id: true, name: true },
       },
       user: {
         select: {
-          attendances: true,
           status: true,
           needPasswordChange: true,
         },
       },
     },
-
-    orderBy: [
-      {
-        class: {
-          name: 'asc',
-        },
-      },
-      {
-        roll: 'asc',
-      },
-    ],
   });
 
+  const intotal = await prisma.student.count({
+    where: whereConditions,
+    skip: effectiveSkip,
+    take: limit,
+  });
   const total = await prisma.student.count({
-    where: whereCondition,
+    where: whereConditions,
   });
 
   return {
     students,
     meta: {
-      className,
+      page: effectivePage,
+      limit,
+      intotal,
       total,
+      className,
     },
   };
 };
@@ -78,16 +123,15 @@ const deleteStudent = async (id: string) => {
 const updateStudent = async (
   id: string,
   currentUser: IUser,
-  payload: Prisma.StudentUpdateInput
+  payload: Record<string, any>
 ) => {
   if (currentUser.role === Role.STUDENT) {
-    const isOwn = await prisma.student.findUnique({
-      where: {
-        userId: currentUser.id,
-      },
+    const ownStudent = await prisma.student.findUnique({
+      where: { userId: currentUser.id },
     });
-    if (!isOwn || isOwn.id !== id) {
-      throw new Error('Unauthorized: You can only update your own profile.');
+
+    if (!ownStudent || ownStudent.id !== id) {
+      throw new Error('Unauthorized');
     }
 
     const allowedFields = [
@@ -97,28 +141,53 @@ const updateStudent = async (
       'address',
       'dateOfBirth',
       'phoneNumber',
-      'profilePicture',
+      'photoUrl',
+      'photoPublicId',
     ];
 
-    const filteredPayload: Prisma.StudentUpdateInput = {};
+    payload = Object.fromEntries(
+      Object.entries(payload).filter(([key]) => allowedFields.includes(key))
+    );
+  }
 
-    Object.keys(payload).forEach((key) => {
-      if (allowedFields.includes(key)) {
-        // @ts-ignore
-        filteredPayload[key] = payload[key];
-      }
-    });
+  if (payload.roll !== undefined) {
+    const roll = Number(payload.roll);
+    if (isNaN(roll)) throw new Error('Roll must be a number');
+    payload.roll = roll;
+  }
 
-    payload = filteredPayload;
+  if (payload.dateOfBirth) {
+    payload.dateOfBirth = new Date(payload.dateOfBirth);
+  }
 
-    if (Object.keys(payload).length === 0) {
-      throw new Error('No valid or permitted fields provided for update.');
-    }
+  if (payload.classId) {
+    payload.class = {
+      connect: { id: payload.classId },
+    };
+    delete payload.classId;
+  }
+  if (payload.photoUrl) {
+    payload.photo = payload.photoUrl;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    throw new Error('No valid data to update');
   }
 
   return await prisma.student.update({
     where: { id },
-    data: payload,
+    data: {
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      email: payload.email,
+      roll: Number(payload.roll),
+      gender: payload.gender as Gender,
+      phoneNumber: payload.phoneNumber || null,
+      address: payload.address || null,
+      photo: payload.photoUrl || null,
+      dateOfBirth: payload.dateOfBirth ? new Date(payload.dateOfBirth) : null,
+      classId: payload.classId || null,
+    },
   });
 };
 

@@ -3,12 +3,21 @@ import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { StudentServices } from './student.services';
-import { IUser, Role } from '../user/user.interface';
+import { IUser } from '../user/user.interface';
+import { userFilterableFields, userOptionFields } from './student.constant';
+import queryPick from '../../utils/queryPick';
 
 const allStudents = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    const filters = queryPick(req.query, userFilterableFields);
+    const options = queryPick(req.query, userOptionFields);
+
     const { classId } = req.query;
-    const result = await StudentServices.allStudents(classId as string);
+    const result = await StudentServices.allStudents(
+      classId as string,
+      filters,
+      options
+    );
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

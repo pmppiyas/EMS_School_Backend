@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { checkAuth } from '../../middleware/checkAuth';
 import { Role } from '../user/user.interface';
 import { StudentController } from './student.controller';
+import { multerUpload } from '../../config/multer.config';
+import { validateRequest } from '../../middleware/validateRequest';
+import { updateStudentZodSchema } from './student.validation';
 const router = Router();
 
 router.get(
@@ -19,6 +22,8 @@ router.delete(
 router.put(
   '/:id',
   checkAuth(...Object.values(Role)),
+  multerUpload.single('photo'),
+  validateRequest(updateStudentZodSchema),
   StudentController.updateStudent
 );
 
