@@ -9,3 +9,5 @@ build
 /src/generated/prisma
 
 /src/generated/prisma
+
+.vercel

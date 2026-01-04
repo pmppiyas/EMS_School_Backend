@@ -1,17 +1,16 @@
-import { Router } from "express";
-import { path } from "path";
-import { attendRoutes } from "../module/attendance/attend.routes";
-import { authRoutes } from "../module/auth/auth.routes";
-import { classRouter } from "../module/class/class.routes";
-import { feeRoutes } from "../module/fee/fee.routes";
-import { noticeRoutes } from "../module/notice/notice.routes";
-import { resultRoutes } from "../module/result/result.routes";
-import { scheduleRouter } from "../module/schedule/schedule.routes";
-import { paymentRoutes } from "../module/sslpayment/payment.routes";
-import { studentRoutes } from "../module/student/student.routes";
-import { subjectRouter } from "../module/subject/subject.routes";
-import { teacherRoutes } from "../module/teacher/teacher.routes";
-import { userRoutes } from "../module/user/user.routes";
+import { Router } from 'express';
+import { attendRoutes } from '../module/attendance/attend.routes';
+import { authRoutes } from '../module/auth/auth.routes';
+import { classRouter } from '../module/class/class.routes';
+import { feeRoutes } from '../module/fee/fee.routes';
+import { noticeRoutes } from '../module/notice/notice.routes';
+import { resultRoutes } from '../module/result/result.routes';
+import { scheduleRouter } from '../module/schedule/schedule.routes';
+import { paymentRoutes } from '../module/sslpayment/payment.routes';
+import { studentRoutes } from '../module/student/student.routes';
+import { subjectRouter } from '../module/subject/subject.routes';
+import { teacherRoutes } from '../module/teacher/teacher.routes';
+import { userRoutes } from '../module/user/user.routes';
 
 const router = Router();
 
@@ -22,51 +21,51 @@ interface routerArgs {
 
 const allRoutes: routerArgs[] = [
   {
-    path: "/user",
+    path: '/user',
     route: userRoutes,
   },
   {
-    path: "/auth",
+    path: '/auth',
     route: authRoutes,
   },
   {
-    path: "/class",
+    path: '/class',
     route: classRouter,
   },
   {
-    path: "/subject",
+    path: '/subject',
     route: subjectRouter,
   },
   {
-    path: "/schedule",
+    path: '/schedule',
     route: scheduleRouter,
   },
   {
-    path: "/notice",
+    path: '/notice',
     route: noticeRoutes,
   },
   {
-    path: "/result",
+    path: '/result',
     route: resultRoutes,
   },
   {
-    path: "/fee",
+    path: '/fee',
     route: feeRoutes,
   },
   {
-    path: "/student",
+    path: '/student',
     route: studentRoutes,
   },
   {
-    path: "/payment",
+    path: '/payment',
     route: paymentRoutes,
   },
   {
-    path: "/attendance",
+    path: '/attendance',
     route: attendRoutes,
   },
   {
-    path: "/teacher",
+    path: '/teacher',
     route: teacherRoutes,
   },
 ];

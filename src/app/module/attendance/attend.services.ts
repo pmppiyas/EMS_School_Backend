@@ -300,7 +300,6 @@ const getStudentAttendance = async (date?: string) => {
 const generateDailyAttendance = async () => {
   const BDT_OFFSET_HOURS = 6;
   const nowUTC = new Date();
-
   const todayBDT = new Date(
     nowUTC.getTime() + BDT_OFFSET_HOURS * 60 * 60 * 1000
   );
@@ -310,18 +309,15 @@ const generateDailyAttendance = async () => {
 
   const users = await prisma.user.findMany({
     include: {
-      student: { include: { class: true } },
-      teacher: true,
-      admin: true,
+      student: true,
     },
   });
 
-  return await prisma.$transaction(async (tx) => {
-    for (const u of users) {
-      let classId: string | null =
-        u.role === Role.STUDENT ? u.student?.classId ?? null : null;
+  for (const u of users) {
+    try {
+      const classId = u.role === 'STUDENT' ? u.student?.classId ?? null : null;
 
-      const exist = await tx.attendance.findFirst({
+      const exist = await prisma.attendance.findFirst({
         where: {
           userId: u.id,
           createdAt: {
@@ -332,18 +328,20 @@ const generateDailyAttendance = async () => {
       });
 
       if (!exist) {
-        await tx.attendance.create({
+        await prisma.attendance.create({
           data: {
             userId: u.id,
             classId,
-            status: IAttendStatus.ABSENT,
+            status: 'ABSENT',
             notedBy: 'SYSTEM',
             createdAt: todayBDT,
           },
         });
       }
+    } catch (err) {
+      console.error(`Error for user ${u.id}:`, err);
     }
-  });
+  }
 };
 
 export const AttendServices = {

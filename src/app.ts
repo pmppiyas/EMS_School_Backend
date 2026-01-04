@@ -6,6 +6,7 @@ import cron from 'node-cron';
 import { globalErrorHandler } from './app/middleware/globalErrorHandler';
 import { AttendServices } from './app/module/attendance/attend.services';
 import router from './app/routes/routes';
+import { env } from './app/config/env';
 
 const app = express();
 
@@ -16,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', env.FRONTEND_LINK],
     credentials: true,
   })
 );

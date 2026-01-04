@@ -13,7 +13,7 @@ const crdLogin = catchAsync(
     res.cookie('accessToken', accessToken, {
       secure: true,
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
@@ -21,7 +21,7 @@ const crdLogin = catchAsync(
     res.cookie('refreshToken', refreshToken, {
       secure: true,
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
@@ -54,14 +54,14 @@ const logout = catchAsync(async (req: Request, res: Response) => {
   res.clearCookie('accessToken', {
     secure: true,
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'none',
     path: '/',
   });
 
   res.clearCookie('refreshToken', {
     secure: true,
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'none',
     path: '/',
   });
 

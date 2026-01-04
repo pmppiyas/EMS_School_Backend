@@ -8,7 +8,8 @@
     "lint": "npx eslint ./src",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm run build",
+    "start": "node src/server.ts"
   },
   "keywords": [],
   "author": "",
