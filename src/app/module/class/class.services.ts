@@ -77,14 +77,14 @@ const addClassTime = async (times: any[]) => {
 };
 
 const getClassTime = async () => {
-  const classes = await prisma.classTime.findMany({
+  const classtimes = await prisma.classTime.findMany({
     orderBy: {
       startTime: 'asc',
     },
   });
   const count = await prisma.classTime.count();
   return {
-    classes,
+    classtimes,
     meta: {
       tota: count,
     },

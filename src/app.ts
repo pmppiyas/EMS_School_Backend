@@ -9,7 +9,7 @@ import router from './app/routes/routes';
 import { env } from './app/config/env';
 
 const app = express();
-
+app.set('trust proxy', 1);
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json());

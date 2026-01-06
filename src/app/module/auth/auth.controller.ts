@@ -8,31 +8,11 @@ const crdLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await AuthServices.crdLogin(req.body);
 
-    const { accessToken, refreshToken, needPasswordChange } = result;
-
-    res.cookie('accessToken', accessToken, {
-      secure: true,
-      httpOnly: true,
-      sameSite: 'none',
-      path: '/',
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
-
-    res.cookie('refreshToken', refreshToken, {
-      secure: true,
-      httpOnly: true,
-      sameSite: 'none',
-      path: '/',
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-    });
-
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
       message: 'Credientials login successfully',
-      data: {
-        needPasswordChange,
-      },
+      data: result,
     });
   }
 );
@@ -56,6 +36,7 @@ const logout = catchAsync(async (req: Request, res: Response) => {
     httpOnly: true,
     sameSite: 'none',
     path: '/',
+    maxAge: 0,
   });
 
   res.clearCookie('refreshToken', {

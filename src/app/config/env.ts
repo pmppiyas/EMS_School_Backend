@@ -5,8 +5,8 @@ dotenv.config({ path: path.join(process.cwd(), '.env').toString() });
 
 export const env = {
   PORT: process.env.PORT,
-  NODE_ENV: process.env.NODE_ENV,
-  FRONTEND_LINK: process.env.NEXT_PUBLIC_FRONTEND_LINK as string,
+  NODE_ENV: process.env.NODE_ENV as string,
+  FRONTEND_LINK: process.env.FRONTEND_LINK as string,
   JWT_SECRET: process.env.JWT_SECRET as string,
   BCRYPT: {
     SALTNUMBER: process.env.SALTNUMBER,

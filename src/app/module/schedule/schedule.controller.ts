@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-import { ScheduleServices } from "./schedule.services";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { ScheduleServices } from './schedule.services';
 
 const assignClassSchedule = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -11,7 +11,7 @@ const assignClassSchedule = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "Schedule created successfully",
+      message: 'Schedule created successfully',
       data: result,
     });
   }
@@ -20,13 +20,13 @@ const assignClassSchedule = catchAsync(
 const getAllSchedules = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await ScheduleServices.getAllSchedules(
-      req.query.classId as string | undefined
+      req.query.day as string | undefined
     );
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "All schedules retrieved successfully",
+      message: 'All schedules retrieved successfully',
       data: result,
     });
   }
@@ -41,14 +41,27 @@ const mySchedules = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "My schedules successfully",
+      message: 'My schedules successfully',
       data: result,
     });
   }
 );
 
+const getScheduleByDay = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ScheduleServices.getScheduleByDay(req.params.day);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'All schedules retrieved by day successfully',
+      data: result,
+    });
+  }
+);
 export const ScheduleController = {
   assignClassSchedule,
   getAllSchedules,
   mySchedules,
+  getScheduleByDay,
 };

@@ -80,8 +80,10 @@ const allStudents = async (
       class: {
         select: { id: true, name: true },
       },
+
       user: {
         select: {
+          attendances: true,
           status: true,
           needPasswordChange: true,
         },
@@ -186,7 +188,7 @@ const updateStudent = async (
       address: payload.address || null,
       photo: payload.photoUrl || null,
       dateOfBirth: payload.dateOfBirth ? new Date(payload.dateOfBirth) : null,
-      classId: payload.classId || null,
+      class: payload.class || undefined,
     },
   });
 };

@@ -6,6 +6,7 @@ import { ScheduleController } from './schedule.controller';
 const router = Router();
 
 router.post('/:classId', ScheduleController.assignClassSchedule);
+
 router.get('/', ScheduleController.getAllSchedules);
 
 router.get(
@@ -13,4 +14,7 @@ router.get(
   checkAuth(Role.TEACHER, Role.ADMIN),
   ScheduleController.mySchedules
 );
+
+router.get('/:day', ScheduleController.getScheduleByDay);
+
 export const scheduleRouter = router;

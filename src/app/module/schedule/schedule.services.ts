@@ -1,9 +1,10 @@
-import { Request } from "express";
-import { StatusCodes } from "http-status-codes";
-import prisma from "../../config/prisma";
-import { groupAndSortSchedules } from "../../helper/scheduleHelper";
-import { AppError } from "../../utils/appError";
-import { ISlot } from "./schedule.interface";
+import { Request } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import prisma from '../../config/prisma';
+import { groupAndSortSchedules } from '../../helper/scheduleHelper';
+import { AppError } from '../../utils/appError';
+import { ISlot } from './schedule.interface';
+import { tr } from 'zod/locales';
 
 const assignClassSchedule = async (req: Request) => {
   const { classId } = req.params;
@@ -30,8 +31,8 @@ const assignClassSchedule = async (req: Request) => {
   return await prisma.classSchedule.createMany({ data });
 };
 
-const getAllSchedules = async (classId?: string) => {
-  const where = classId ? { classId } : {};
+const getAllSchedules = async (day?: string) => {
+  const where = day ? { day } : {};
   const schedules = await prisma.classSchedule.findMany({
     where,
     include: {
@@ -65,7 +66,7 @@ const mySchedules = async (email: string) => {
   });
 
   if (!teacher) {
-    throw new AppError(StatusCodes.FORBIDDEN, "You are not authorized!");
+    throw new AppError(StatusCodes.FORBIDDEN, 'You are not authorized!');
   }
 
   const schedules = await prisma.classSchedule.findMany({
@@ -82,8 +83,62 @@ const mySchedules = async (email: string) => {
   return groupAndSortSchedules(schedules);
 };
 
+const getScheduleByDay = async (day: string) => {
+  const schedules = await prisma.classSchedule.findMany({
+    where: {
+      day,
+    },
+    include: {
+      classTime: {
+        select: { period: true, startTime: true, endTime: true },
+      },
+      teacher: {
+        select: {
+          firstName: true,
+          lastName: true,
+          phoneNumber: true,
+        },
+      },
+      subject: {
+        select: {
+          name: true,
+          code: true,
+        },
+      },
+      class: {
+        select: {
+          name: true,
+          id: true,
+        },
+      },
+    },
+  });
+
+  const groupedByClass = schedules.reduce((acc, schedule) => {
+    const classId = schedule.class.id;
+
+    if (!acc[classId]) {
+      acc[classId] = {
+        class: schedule.class,
+        schedules: [],
+      };
+    }
+
+    acc[classId].schedules.push({
+      classTime: schedule.classTime,
+      teacher: schedule.teacher,
+      subject: schedule.subject,
+    });
+
+    return acc;
+  }, {} as Record<string, any>);
+
+  return Object.values(groupedByClass);
+};
+
 export const ScheduleServices = {
   assignClassSchedule,
   getAllSchedules,
   mySchedules,
+  getScheduleByDay,
 };
