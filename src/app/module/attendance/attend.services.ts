@@ -214,7 +214,7 @@ const getTeacherAttendance = async (date?: string) => {
   };
 };
 
-const getStudentAttendance = async (date?: string) => {
+const getStudentAttendance = async (classId?: string, date?: string) => {
   let targetDate: Date;
 
   if (date) {
@@ -232,6 +232,7 @@ const getStudentAttendance = async (date?: string) => {
   const attendance = await prisma.attendance.findMany({
     where: {
       createdAt: { gte: startRange, lt: endRange },
+      classId,
       user: { role: 'STUDENT' },
     },
     include: {
@@ -241,6 +242,13 @@ const getStudentAttendance = async (date?: string) => {
         },
       },
       class: true,
+    },
+    orderBy: {
+      user: {
+        student: {
+          roll: 'asc',
+        },
+      },
     },
   });
 
@@ -261,6 +269,8 @@ const getStudentAttendance = async (date?: string) => {
       id: studentInfo.id,
       userId: att.userId,
       name: `${studentInfo.firstName} ${studentInfo.lastName}`,
+      roll: studentInfo.roll,
+      number: studentInfo.phoneNumber,
       classId: att.classId,
       className: att.class?.name || 'UNKNOWN',
       status: att.status,

@@ -39,6 +39,7 @@ const getTeacherAttendance = catchAsync(
 const getStudnetAttendance = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await AttendServices.getStudentAttendance(
+      req.query.classId as string | undefined,
       req.query.date as string | undefined
     );
 

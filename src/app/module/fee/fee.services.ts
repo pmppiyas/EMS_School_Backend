@@ -237,7 +237,7 @@ const createFeeType = async (payload: IFeeType) => {
       name: category,
       category,
       amount,
-      isMonthly: isMonthly,
+      isMonthly: category === 'MONTHLY' ? true : false,
     },
     select: {
       name: true,
@@ -255,10 +255,15 @@ const deleteFeeType = async (id: string) => {
   return result.name;
 };
 
+const getAllfeeType = async () => {
+  return await prisma.feeType.findMany({});
+};
+
 export const FeeServices = {
   createFee,
   getAllFee,
   myFee,
   createFeeType,
   deleteFeeType,
+  getAllfeeType,
 };

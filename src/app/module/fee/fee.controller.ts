@@ -69,10 +69,24 @@ const deleteFeeType = catchAsync(
   }
 );
 
+const getAllfeeType = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await FeeServices.getAllfeeType();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'ALl feetypes retrieved succcessfully',
+      data: result,
+    });
+  }
+);
+
 export const FeeControllers = {
   createFee,
   getAllFee,
   myFee,
   createFeeType,
   deleteFeeType,
+  getAllfeeType,
 };

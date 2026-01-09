@@ -3,7 +3,8 @@ model FeeType {
   name      String
   amount    Float
   category  FeeCategory @unique
-  isMonthly Boolean     @default(false)
+  isMonthly Boolean
+  classId   String?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 

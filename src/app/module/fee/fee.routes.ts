@@ -21,4 +21,6 @@ router.delete(
   FeeControllers.deleteFeeType
 );
 
+router.get('/type', FeeControllers.getAllfeeType);
+
 export const feeRoutes = router;
