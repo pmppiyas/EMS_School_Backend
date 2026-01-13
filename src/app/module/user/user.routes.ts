@@ -34,7 +34,7 @@ router.post(
 
 router.post(
   '/create_teacher',
-  checkAuth(Role.ADMIN),
+  // checkAuth(Role.ADMIN),
   multerUpload.single('photo'),
   validateRequest(createTeacherZodSchema),
   UserController.createTeacher

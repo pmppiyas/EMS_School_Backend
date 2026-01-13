@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { ClassController } from './class.controller';
+import { checkAuth } from '../../middleware/checkAuth';
+import { Role } from '../user/user.interface';
 
 const router = Router();
 
-router.post('/', ClassController.createClass);
+router.post('/', checkAuth(Role.ADMIN), ClassController.createClass);
 router.get('/', ClassController.getClasses);
 router.delete('/:id', ClassController.deleteClass);
 router.patch('/:id', ClassController.editClass);

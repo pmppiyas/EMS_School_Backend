@@ -7,20 +7,22 @@ import { globalErrorHandler } from './app/middleware/globalErrorHandler';
 import { AttendServices } from './app/module/attendance/attend.services';
 import router from './app/routes/routes';
 import { env } from './app/config/env';
+import { adminSeed } from './app/utils/adminSeed';
 
 const app = express();
-app.set('trust proxy', 1);
-app.use(compression());
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
+app.use(cookieParser());
 app.use(
   cors({
-    origin: ['http://localhost:3000', env.FRONTEND_LINK],
+    origin: [env.FRONTEND_LINK, 'http://localhost:3000'],
     credentials: true,
   })
 );
+
+app.use(express.json());
+app.set('trust proxy', 1);
+app.use(compression());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (_req, res) => {
   res.send('Welcome to the EMS_School Server!');
@@ -36,6 +38,8 @@ cron.schedule('0 8 * * *', () => {
 //   AttendServices.generateDailyAttendance();
 //   console.log('RUn');
 // }, 5 * 1000);
+
+adminSeed();
 
 app.use((req, res, next) => {
   res.status(404).json({

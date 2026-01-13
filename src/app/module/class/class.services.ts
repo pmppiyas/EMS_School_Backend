@@ -21,7 +21,15 @@ const createClass = async (name: string) => {
 
 const getClasses = async () => {
   const count = await prisma.class.count();
-  const classes = await prisma.class.findMany();
+  const classes = await prisma.class.findMany({
+    include: {
+      _count: {
+        select: {
+          students: true,
+        },
+      },
+    },
+  });
   return {
     classes,
     meta: {
@@ -79,7 +87,7 @@ const addClassTime = async (times: any[]) => {
 const getClassTime = async () => {
   const classtimes = await prisma.classTime.findMany({
     orderBy: {
-      startTime: 'asc',
+      period: 'asc',
     },
   });
   const count = await prisma.classTime.count();

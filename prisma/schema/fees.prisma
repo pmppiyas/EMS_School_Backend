@@ -2,9 +2,11 @@ model FeeType {
   id        String      @id @default(uuid())
   name      String
   amount    Float
-  category  FeeCategory @unique
+  category  FeeCategory
   isMonthly Boolean
   classId   String?
+  term      TERM?
+  class     Class?      @relation(fields: [classId], references: [id])
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 

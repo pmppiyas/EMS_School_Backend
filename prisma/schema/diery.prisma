@@ -1,0 +1,9 @@
+model Diery {
+  id        String   @id @default(uuid())
+  classId   String
+  subjectId String
+  date      DateTime
+  note      String
+
+  @@map("diery")
+}

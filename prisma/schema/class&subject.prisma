@@ -5,6 +5,7 @@ model Class {
   schedules   ClassSchedule[]
   results     Result[]
   attendances Attendance[]
+  feeTypes    FeeType[]
 
   @@map("classes")
 }

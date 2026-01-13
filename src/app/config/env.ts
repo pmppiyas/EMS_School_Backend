@@ -28,4 +28,8 @@ export const env = {
     API_KEY: process.env.API_KEY as string,
     API_SECRET: process.env.API_SECRET as string,
   },
+  ADMINSEED: {
+    EMAIL: process.env.EMAIL as string,
+    PASSWORD: process.env.PASSWORD as string,
+  },
 };

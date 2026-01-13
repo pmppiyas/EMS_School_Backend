@@ -12,98 +12,155 @@ const createFee = async (
     amount?: number;
     term?: ITerm;
     month?: string[];
+    year?: number;
   },
   user: IUser
 ) => {
-  const { feeTypeId, studentId, term, month = [] } = payload;
+  const { feeTypeId, studentId, term, month = [], year } = payload;
 
-  const issuer = await prisma.admin.findUnique({
-    where: { email: user.email },
-  });
+  return await prisma.$transaction(async (tx) => {
+    const issuer = await tx.admin.findUnique({
+      where: { email: user.email },
+    });
 
-  if (!issuer) {
-    throw new AppError(StatusCodes.UNAUTHORIZED, 'You are unauthorized!');
-  }
-
-  const feeType = await prisma.feeType.findUniqueOrThrow({
-    where: { id: feeTypeId },
-  });
-
-  const issuedBy = `${issuer.firstName} ${issuer.lastName}`;
-  const year = new Date().getFullYear();
-
-  if (feeType.category === 'MONTHLY') {
-    if (!month.length) {
-      throw new AppError(400, 'At least 1 month is required.');
+    if (!issuer) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'You are unauthorized!');
     }
 
-    const existingPayments = await prisma.feePayment.findMany({
+    const feeType = await tx.feeType.findUniqueOrThrow({
+      where: { id: feeTypeId },
+    });
+
+    const issuedBy = `${issuer.firstName} ${issuer.lastName}`;
+    const paymentYear = year || new Date().getFullYear();
+
+    if (feeType.category === 'MONTHLY' || feeType.category === 'TUITION') {
+      if (!month.length) {
+        throw new AppError(400, 'At least 1 month is required.');
+      }
+
+      const existingPayments = await tx.feePayment.findMany({
+        where: {
+          studentId,
+          feeTypeId,
+          year: paymentYear,
+          month: { in: month },
+        },
+        select: { month: true },
+      });
+
+      if (existingPayments.length > 0) {
+        const alreadyPaidMonths = existingPayments
+          .map((e) => e.month)
+          .join(', ');
+        const categoryName =
+          feeType.category === 'TUITION' ? 'Tuition' : 'Monthly';
+        throw new AppError(
+          StatusCodes.CONFLICT,
+          `${categoryName} fee for ${alreadyPaidMonths} ${paymentYear} is already paid`
+        );
+      }
+
+      const data = month.map((m) => ({
+        studentId,
+        feeTypeId,
+        paidAmount: feeType.amount,
+        term: null,
+        year: paymentYear,
+        month: m,
+        issuedBy,
+      }));
+
+      return await tx.feePayment.createMany({ data });
+    }
+
+    if (feeType.category === 'EXAM') {
+      if (!term) throw new AppError(400, 'Term is required for exam fees.');
+
+      const existingExamPayment = await tx.feePayment.findFirst({
+        where: {
+          studentId,
+          feeTypeId,
+          year: paymentYear,
+          term,
+        },
+      });
+
+      if (existingExamPayment) {
+        throw new AppError(
+          StatusCodes.CONFLICT,
+          `Exam fee for ${term} ${paymentYear} is already paid`
+        );
+      }
+
+      return tx.feePayment.create({
+        data: {
+          studentId,
+          feeTypeId,
+          paidAmount: feeType.amount,
+          year: paymentYear,
+          term,
+          month: null,
+          issuedBy,
+        },
+      });
+    }
+
+    if (feeType.category === 'SESSION') {
+      const existingSessionPayment = await tx.feePayment.findFirst({
+        where: {
+          studentId,
+          feeTypeId,
+          year: paymentYear,
+        },
+      });
+
+      if (existingSessionPayment) {
+        throw new AppError(
+          StatusCodes.CONFLICT,
+          `Session fee for ${paymentYear} is already paid`
+        );
+      }
+
+      return tx.feePayment.create({
+        data: {
+          studentId,
+          feeTypeId,
+          paidAmount: feeType.amount,
+          year: paymentYear,
+          issuedBy,
+        },
+      });
+    }
+
+    const existingOneTimePayment = await tx.feePayment.findFirst({
       where: {
         studentId,
         feeTypeId,
-        year,
-        month: { in: month },
+        year: paymentYear,
       },
-      select: { month: true },
     });
 
-    if (existingPayments.length > 0) {
-      const alreadyPaidMonths = existingPayments.map((e) => e.month).join(', ');
+    if (existingOneTimePayment) {
       throw new AppError(
-        StatusCodes.NOT_IMPLEMENTED,
-        `${alreadyPaidMonths} ${year} is already paid`
+        StatusCodes.CONFLICT,
+        `${feeType.category} fee for ${paymentYear} is already paid`
       );
     }
 
-    const data = month.map((m) => ({
-      studentId,
-      feeTypeId,
-      paidAmount: feeType.amount,
-      term: null,
-      year,
-      month: m,
-      issuedBy,
-    }));
-
-    return await prisma.feePayment.createMany({ data });
-  }
-
-  if (feeType.category === 'EXAM') {
-    if (!term) throw new AppError(400, 'Term is required for exam fees.');
-
-    return prisma.feePayment.create({
+    return tx.feePayment.create({
       data: {
         studentId,
         feeTypeId,
         paidAmount: feeType.amount,
-        year,
-        term,
-        month: null,
+        year: paymentYear,
         issuedBy,
       },
     });
-  }
-
-  if (feeType.category === 'SESSION') {
-    return prisma.feePayment.create({
-      data: {
-        studentId,
-        feeTypeId,
-        paidAmount: feeType.amount,
-        issuedBy,
-      },
-    });
-  }
-
-  return prisma.feePayment.create({
-    data: {
-      studentId,
-      feeTypeId,
-      paidAmount: feeType.amount,
-      issuedBy,
-    },
   });
 };
+
+export default createFee;
 
 const getAllFee = async () => {
   const fees = await prisma.feePayment.findMany({
@@ -132,7 +189,7 @@ const getAllFee = async () => {
       issuedBy: true,
     },
   });
-  return fees;
+  return { fees };
 };
 
 const myFee = async (email: string) => {
@@ -225,25 +282,27 @@ const myFee = async (email: string) => {
 
 // Fee types
 const createFeeType = async (payload: IFeeType) => {
-  const { category, amount, isMonthly } = payload;
+  const { category, amount, isMonthly, classId } = payload;
 
-  return prisma.feeType.upsert({
-    where: { category },
-    update: {
-      amount,
-      isMonthly: isMonthly,
-    },
-    create: {
-      name: category,
+  const existing = await prisma.feeType.findFirst({
+    where: {
       category,
-      amount,
-      isMonthly: category === 'MONTHLY' ? true : false,
-    },
-    select: {
-      name: true,
-      amount: true,
+      classId,
     },
   });
+
+  if (existing) {
+    await prisma.feeType.update({
+      where: {
+        id: existing.id,
+      },
+      data: { ...payload, isMonthly: isMonthly ?? false },
+    });
+  } else {
+    await prisma.feeType.create({
+      data: { ...payload, name: category, isMonthly: isMonthly ?? false },
+    });
+  }
 };
 
 const deleteFeeType = async (id: string) => {
@@ -256,7 +315,11 @@ const deleteFeeType = async (id: string) => {
 };
 
 const getAllfeeType = async () => {
-  return await prisma.feeType.findMany({});
+  return await prisma.feeType.findMany({
+    include: {
+      class: true,
+    },
+  });
 };
 
 export const FeeServices = {
