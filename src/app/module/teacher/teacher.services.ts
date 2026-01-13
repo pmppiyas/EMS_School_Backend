@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import prisma from '../../config/prisma';
 import { AppError } from '../../utils/appError';
 import { Prisma } from '@prisma/client';
+
 const allTeachers = async () => {
   const teachers = await prisma.teacher.findMany({
     include: {

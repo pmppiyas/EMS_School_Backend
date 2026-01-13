@@ -4,6 +4,7 @@ model Diery {
   subjectId String
   date      DateTime
   note      String
+  comment   String?
 
   @@map("diery")
 }

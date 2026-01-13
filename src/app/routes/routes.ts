@@ -11,6 +11,7 @@ import { studentRoutes } from '../module/student/student.routes';
 import { subjectRouter } from '../module/subject/subject.routes';
 import { teacherRoutes } from '../module/teacher/teacher.routes';
 import { userRoutes } from '../module/user/user.routes';
+import { dieryRoutes } from '../module/diery/diery.routes';
 
 const router = Router();
 
@@ -67,6 +68,11 @@ const allRoutes: routerArgs[] = [
   {
     path: '/teacher',
     route: teacherRoutes,
+  },
+
+  {
+    path: '/diery',
+    route: dieryRoutes,
   },
 ];
 
