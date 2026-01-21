@@ -6,6 +6,7 @@ import { AppError } from '../../utils/appError';
 import httpStatus from 'http-status-codes';
 import { IOptions } from './student.interface';
 import { calculatePagination } from '../../utils/calculatePagination';
+import { email } from 'zod';
 
 const allStudents = async (
   classId?: string,
@@ -198,6 +199,7 @@ const getById = async (id: string) => {
     where: { id },
   });
 };
+
 export const StudentServices = {
   allStudents,
   deleteStudent,

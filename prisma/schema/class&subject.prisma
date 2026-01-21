@@ -1,24 +1,28 @@
 model Class {
   id          String          @id @default(uuid())
   name        String          @unique
-  students    Student[]
   schedules   ClassSchedule[]
   results     Result[]
   attendances Attendance[]
   feeTypes    FeeType[]
+  diaries     Diary[]
+  subjects    Subject[]
+  students    Student[]
 
   @@map("classes")
 }
 
 model Subject {
   id              String           @id @default(uuid())
-  name            String           @unique
+  name            String
   code            String?
   schedules       ClassSchedule[]
   studentSubjects StudentSubject[]
-  student         Student?         @relation(fields: [studentId], references: [id])
-  studentId       String?
+  class           Class            @relation(fields: [classId], references: [id])
+  classId         String
   results         Result[]
+  diaries         Diary[]
 
+  @@unique([name, classId])
   @@map("subjects")
 }

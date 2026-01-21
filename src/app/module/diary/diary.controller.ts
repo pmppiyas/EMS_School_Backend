@@ -1,54 +1,57 @@
 import catchAsync from '../../utils/catchAsync';
 import { Request, Response, NextFunction } from 'express';
-import { DieryServices } from './diery.services';
+import { DiaryServices } from './diary.services';
 import sendResponse from '../../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
-const createDiery = catchAsync(
+const createDiary = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await DieryServices.createDiery(req.body);
+    const result = await DiaryServices.createDiary(req.body);
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: 'Diery upload succcessfully',
+      message: 'Diary upload succcessfully',
       data: result,
     });
   }
 );
 
-const updateDiery = catchAsync(
+const updateDiary = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await DieryServices.updateDiery(req.params.id, req.body);
-
+    const result = await DiaryServices.updateDiary(req.params.id, req.body);
+    console.log(result);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: 'Diery update succcessfully',
+      message: 'Diary update succcessfully',
       data: result,
     });
   }
 );
 
-const deleteDiery = catchAsync(
+const deleteDiary = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await DieryServices.deleteDiery(req.params.id);
+    const result = await DiaryServices.deleteDiary(req.params.id);
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: 'Diery delete succcessfully',
+      message: 'Diary delete succcessfully',
       data: result,
     });
   }
 );
 
-const readDiery = catchAsync(
+const readDiary = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const date =
-      (req.query.date as string) || new Date().toISOString().split('T')[0];
+    const bdToday = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Dhaka',
+    });
 
-    const result = await DieryServices.readDiery(req.params.id, date);
+    const date = (req.query.date as string) || bdToday;
+
+    const result = await DiaryServices.readDiary(req.params.id, date);
 
     sendResponse(res, {
       success: true,
@@ -59,9 +62,9 @@ const readDiery = catchAsync(
   }
 );
 
-export const DieryController = {
-  createDiery,
-  updateDiery,
-  deleteDiery,
-  readDiery,
+export const DiaryController = {
+  createDiary,
+  updateDiary,
+  deleteDiary,
+  readDiary,
 };

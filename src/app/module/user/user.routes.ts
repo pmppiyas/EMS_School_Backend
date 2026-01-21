@@ -5,6 +5,7 @@ import { checkAuth } from '../../middleware/checkAuth';
 import { validateRequest } from '../../middleware/validateRequest';
 import { UserController } from './user.controller';
 import { Role } from './user.interface';
+
 import {
   createAdminZodSchema,
   createStudentZodSchema,
@@ -45,5 +46,7 @@ router.put(
   validateRequest(userStatusChangeValidation),
   UserController.changeUserStatus
 );
+
+router.get('/me', checkAuth(...Object.values(Role)), UserController.getMe);
 
 export const userRoutes = router;

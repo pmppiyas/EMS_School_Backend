@@ -6,6 +6,7 @@ import { StudentServices } from './student.services';
 import { IUser } from '../user/user.interface';
 import { userFilterableFields, userOptionFields } from './student.constant';
 import queryPick from '../../utils/queryPick';
+import { JwtPayload } from 'jsonwebtoken';
 
 const allStudents = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

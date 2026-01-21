@@ -11,7 +11,8 @@ import { studentRoutes } from '../module/student/student.routes';
 import { subjectRouter } from '../module/subject/subject.routes';
 import { teacherRoutes } from '../module/teacher/teacher.routes';
 import { userRoutes } from '../module/user/user.routes';
-import { dieryRoutes } from '../module/diery/diery.routes';
+import { diaryRoutes } from '../module/diary/diary.routes';
+import { metaRoutes } from '../module/meta/meta.routes';
 
 const router = Router();
 
@@ -71,8 +72,12 @@ const allRoutes: routerArgs[] = [
   },
 
   {
-    path: '/diery',
-    route: dieryRoutes,
+    path: '/diary',
+    route: diaryRoutes,
+  },
+  {
+    path: 'meta',
+    route: metaRoutes,
   },
 ];
 

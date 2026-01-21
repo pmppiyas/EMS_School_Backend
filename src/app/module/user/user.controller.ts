@@ -4,6 +4,7 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { UserStatus } from './user.interface';
 import { UserServices } from './user.services';
+import { JwtPayload } from 'jsonwebtoken';
 
 const getAllUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -73,10 +74,23 @@ const changeUserStatus = catchAsync(
   }
 );
 
+const getMe = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserServices.getMe(req.user as JwtPayload);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Own data retrieved successfully `,
+      data: result,
+    });
+  }
+);
+
 export const UserController = {
   getAllUser,
   createStudent,
   createAdmin,
   createTeacher,
   changeUserStatus,
+  getMe,
 };

@@ -325,7 +325,8 @@ const generateDailyAttendance = async () => {
 
   for (const u of users) {
     try {
-      const classId = u.role === 'STUDENT' ? u.student?.classId ?? null : null;
+      const classId =
+        u.role === 'STUDENT' ? (u.student?.classId ?? null) : null;
 
       const exist = await prisma.attendance.findFirst({
         where: {

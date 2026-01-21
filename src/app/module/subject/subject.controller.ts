@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-import { SubjectServices } from "./subject.services";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { SubjectServices } from './subject.services';
 
 const createSubject = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -19,7 +19,7 @@ const createSubject = catchAsync(
 
 const getAllSubjects = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await SubjectServices.getAllSubjects();
+    const result = await SubjectServices.getAllSubjects(req.params.id);
 
     sendResponse(res, {
       success: true,

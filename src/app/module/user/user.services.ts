@@ -12,6 +12,8 @@ import {
   UserStatus,
 } from './user.interface';
 import { Gender } from '@prisma/client';
+import { JwtPayload } from 'jsonwebtoken';
+import { tr } from 'zod/locales';
 
 const getAllUser = async () => {
   const user = await prisma.user.findMany();
@@ -162,10 +164,66 @@ const changeUserStatus = async (id: string, status: UserStatus) => {
 
   return updatedStatus;
 };
+
+const getMe = async (user: JwtPayload) => {
+  const role = user.role.toUpperCase();
+  switch (role) {
+    case 'STUDENT':
+      return await prisma.user.findUnique({
+        where: { email: user.email },
+        select: {
+          student: {
+            include: {
+              user: true,
+              class: true,
+              feePayments: true,
+              results: true,
+              studentSubjects: true,
+            },
+          },
+        },
+      });
+
+    case 'TEACHER':
+      return await prisma.user.findUnique({
+        where: { email: user.email },
+        select: {
+          teacher: {
+            include: {
+              user: {
+                select: {
+                  needPasswordChange: true,
+                  status: true,
+                },
+              },
+              classSchedules: true,
+            },
+          },
+        },
+      });
+
+    case 'ADMIN':
+      return await prisma.user.findUnique({
+        where: { email: user.email },
+        select: {
+          admin: true,
+          email: true,
+          role: true,
+        },
+      });
+
+    default:
+      return await prisma.user.findUnique({
+        where: { email: user.email },
+      });
+  }
+};
+
 export const UserServices = {
   getAllUser,
   createStudent,
   createAdmin,
   createTeacher,
   changeUserStatus,
+  getMe,
 };

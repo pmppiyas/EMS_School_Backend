@@ -8,8 +8,6 @@ model Student {
   address         String?
   dateOfBirth     DateTime?
   classId         String?
-  class           Class?           @relation(fields: [classId], references: [id])
-  subjects        Subject[]
   roll            Int
   gender          Gender
   userId          String           @unique
@@ -19,6 +17,7 @@ model Student {
   studentSubjects StudentSubject[]
   results         Result[]
   feePayments     FeePayment[]
+  class           Class?           @relation(fields: [classId], references: [id])
 
   @@map("students")
 }

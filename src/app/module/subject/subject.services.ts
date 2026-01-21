@@ -1,28 +1,28 @@
-import { StatusCodes } from "http-status-codes";
-import prisma from "../../config/prisma";
-import { AppError } from "../../utils/appError";
+import { StatusCodes } from 'http-status-codes';
+import prisma from '../../config/prisma';
+import { AppError } from '../../utils/appError';
+import { Prisma } from '@prisma/client';
 
-const createSubject = async (payload: { name: string; code?: string }) => {
-  const isExist = await prisma.subject.findUnique({
-    where: { name: payload.name, code: payload.code! },
-  });
-  if (isExist) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      "Subject with this name already exists"
-    );
+const createSubject = async (payload: Prisma.SubjectUncheckedCreateInput[]) => {
+  if (!payload || payload.length === 0) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'No subjects provided');
   }
-  return await prisma.subject.create({
-    data: {
-      name: payload.name,
-      code: payload.code!,
-    },
+
+  const result = await prisma.subject.createMany({
+    data: payload,
+    skipDuplicates: true,
   });
+
+  return result;
 };
 
-const getAllSubjects = async () => {
+const getAllSubjects = async (classId: string) => {
   const count = await prisma.subject.count();
-  const subjects = await prisma.subject.findMany();
+  const subjects = await prisma.subject.findMany({
+    where: {
+      classId,
+    },
+  });
   return {
     subjects,
     meta: {
@@ -39,7 +39,7 @@ const editSubject = async (
     where: { id },
   });
   if (!isExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Subject not found");
+    throw new AppError(StatusCodes.NOT_FOUND, 'Subject not found');
   }
   return await prisma.subject.update({
     where: { id },
@@ -52,7 +52,7 @@ const deleteSubject = async (id: string) => {
     where: { id },
   });
   if (!isExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Subject not found");
+    throw new AppError(StatusCodes.NOT_FOUND, 'Subject not found');
   }
   const result = await prisma.subject.delete({
     where: { id },

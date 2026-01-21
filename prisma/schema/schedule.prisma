@@ -23,6 +23,7 @@ model ClassTime {
   startTime String
   endTime   String
   schedules ClassSchedule[]
+  diaries   Diary[]
 
   @@map("classTimes")
 }

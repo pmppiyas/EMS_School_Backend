@@ -1,21 +1,31 @@
-import { EntityItem, GroupedResults } from "../module/result/result.interface";
+export const resultFormation = (entity: any[]) => {
+  const grouped = entity.reduce((acc: any, item: any) => {
+    const studentId = item.studentId || item.student.email;
 
-export const resultFormation = async (entity: any[]) => {
-  const grouped = entity.reduce((acc: GroupedResults, item: EntityItem) => {
-    const year = item.year;
-    const term = item.term;
+    if (!acc[studentId]) {
+      acc[studentId] = {
+        studentId: studentId,
+        name: `${item.student.firstName} ${item.student.lastName}`,
+        className: item.student.class.name,
+        term: item.term,
+        results: {},
+        totalMarks: 0,
+      };
+    }
 
-    if (!acc[year]) acc[year] = {};
-    if (!acc[year][term]) acc[year][term] = [];
-
-    acc[year][term].push({
-      subject: item.subject,
-      marks: item.marks,
-      grade: item.grade,
-    });
+    const currentMarks = Number(item.marks) || 0;
+    acc[studentId].results[item.subject.name] = currentMarks;
+    acc[studentId].totalMarks += currentMarks;
 
     return acc;
-  }, {} as GroupedResults);
+  }, {});
 
-  return grouped;
+  const sortedStudents = Object.values(grouped).sort(
+    (a: any, b: any) => b.totalMarks - a.totalMarks
+  );
+
+  return sortedStudents.map((student: any, index: number) => ({
+    ...student,
+    rollNo: index + 1,
+  }));
 };

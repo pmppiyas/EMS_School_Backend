@@ -1,9 +1,47 @@
-import { StatusCodes } from "http-status-codes";
-import prisma from "../../config/prisma";
-import { AppError } from "../../utils/appError";
-import { calculateGrade } from "../../utils/claculateGrade";
-import { resultFormation } from "../../utils/resultFormation";
-import { AddResultBody } from "./result.interface";
+import { StatusCodes } from 'http-status-codes';
+import prisma from '../../config/prisma';
+import { AppError } from '../../utils/appError';
+import { calculateGrade } from '../../utils/claculateGrade';
+import { resultFormation } from '../../utils/resultFormation';
+import { AddResultBody } from './result.interface';
+
+const uploadExcelResult = async ({
+  results,
+  term,
+  year,
+}: {
+  results: any[];
+  term: string;
+  year: number;
+}) => {
+  return await prisma.$transaction(
+    results.map((item) => {
+      return prisma.result.upsert({
+        where: {
+          studentId_subjectId_term_year: {
+            studentId: item.studentId,
+            subjectId: item.subjectId,
+            term,
+            year,
+          },
+        },
+        update: {
+          marks: Number(item.marks),
+          grade: calculateGrade(Number(item.marks)),
+        },
+        create: {
+          studentId: item.studentId,
+          subjectId: item.subjectId,
+          classId: item.classId,
+          marks: Number(item.marks),
+          grade: calculateGrade(Number(item.marks)),
+          term,
+          year,
+        },
+      });
+    })
+  );
+};
 
 const addResult = async (payload: AddResultBody) => {
   const { studentId, subjectId, marks, term, year } = payload;
@@ -15,7 +53,7 @@ const addResult = async (payload: AddResultBody) => {
   });
 
   if (!student?.classId) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Student not found!");
+    throw new AppError(StatusCodes.NOT_FOUND, 'Student not found!');
   }
 
   const result = await prisma.result.upsert({
@@ -42,26 +80,27 @@ const addResult = async (payload: AddResultBody) => {
   return result;
 };
 
-const getAllResults = async () => {
+const getAllResults = async (classId: string, term: string, year: number) => {
   const results = await prisma.result.findMany({
+    where: {
+      classId,
+      term,
+      year,
+    },
     select: {
+      studentId: true,
       student: {
         select: {
           firstName: true,
           lastName: true,
           email: true,
           class: {
-            select: {
-              name: true,
-            },
+            select: { name: true },
           },
         },
       },
       subject: {
-        select: {
-          name: true,
-          code: true,
-        },
+        select: { name: true, code: true },
       },
       marks: true,
       grade: true,
@@ -70,7 +109,7 @@ const getAllResults = async () => {
     },
   });
 
-  return await resultFormation(results);
+  return resultFormation(results);
 };
 
 const myResults = async (email: string) => {
@@ -80,7 +119,7 @@ const myResults = async (email: string) => {
     },
   });
   if (!student) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Student not found");
+    throw new AppError(StatusCodes.NOT_FOUND, 'Student not found');
   }
 
   const results = await prisma.result.findMany({
@@ -116,24 +155,22 @@ const myResults = async (email: string) => {
   return await resultFormation(results);
 };
 
-interface UpdateResultPayload {}
-
 const updateResult = async (resultId: string, marks: number) => {
   const existing = await prisma.result.findUnique({
     where: { id: resultId },
   });
 
   if (!existing) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Result not found!");
+    throw new AppError(StatusCodes.NOT_FOUND, 'Result not found!');
   }
 
   const data: Record<string, unknown> = {};
 
   if (marks !== undefined) {
     if (marks > 100) {
-      throw new AppError(StatusCodes.NOT_MODIFIED, "Highest mark is 100");
+      throw new AppError(StatusCodes.NOT_MODIFIED, 'Highest mark is 100');
     } else if (marks < 0) {
-      throw new AppError(StatusCodes.NOT_MODIFIED, "Minimum mark is 00");
+      throw new AppError(StatusCodes.NOT_MODIFIED, 'Minimum mark is 00');
     }
     data.marks = marks;
     data.grade = calculateGrade(marks);
@@ -157,6 +194,7 @@ const updateResult = async (resultId: string, marks: number) => {
 };
 
 export const ResultServices = {
+  uploadExcelResult,
   addResult,
   getAllResults,
   myResults,
