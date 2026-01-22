@@ -43,6 +43,21 @@ const myFee = catchAsync(
   }
 );
 
+const paidFees = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await FeeServices.paidFees({
+      studentId: req.params.id,
+      year: Number(req.query.year),
+    });
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `My fees retrieved successfully`,
+      data: result,
+    });
+  }
+);
+
 // Fee types
 const createFeeType = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -71,7 +86,7 @@ const deleteFeeType = catchAsync(
 
 const getAllfeeType = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await FeeServices.getAllfeeType();
+    const result = await FeeServices.getAllfeeType(req.query.classId as string);
 
     sendResponse(res, {
       success: true,
@@ -86,6 +101,7 @@ export const FeeControllers = {
   createFee,
   getAllFee,
   myFee,
+  paidFees,
   createFeeType,
   deleteFeeType,
   getAllfeeType,

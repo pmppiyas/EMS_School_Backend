@@ -8,6 +8,13 @@ const router = Router();
 router.post('/', checkAuth(Role.ADMIN), FeeControllers.createFee);
 router.get('/', FeeControllers.getAllFee);
 router.get('/my', checkAuth(Role.STUDENT), FeeControllers.myFee);
+
+router.get(
+  '/paid-fees/:id',
+  checkAuth(...Object.values(Role)),
+  FeeControllers.paidFees
+);
+
 // Fee types
 router.post(
   '/type',

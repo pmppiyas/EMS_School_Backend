@@ -11,3 +11,4 @@ build
 /src/generated/prisma
 
 .vercel
+.env*.local

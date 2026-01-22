@@ -160,8 +160,6 @@ const createFee = async (
   });
 };
 
-export default createFee;
-
 const getAllFee = async () => {
   const fees = await prisma.feePayment.findMany({
     select: {
@@ -187,6 +185,9 @@ const getAllFee = async () => {
       year: true,
       paidDate: true,
       issuedBy: true,
+    },
+    orderBy: {
+      paidDate: 'desc',
     },
   });
   return { fees };
@@ -280,7 +281,27 @@ const myFee = async (email: string) => {
   };
 };
 
-// Fee types
+const paidFees = async ({
+  studentId,
+  year,
+}: {
+  studentId: string;
+  year: number;
+}) => {
+  const paidFees = await prisma.feePayment.findMany({
+    where: {
+      studentId,
+      year,
+    },
+    select: {
+      month: true,
+      feeType: { select: { category: true } },
+    },
+  });
+
+  return paidFees;
+};
+
 const createFeeType = async (payload: IFeeType) => {
   const { category, amount, isMonthly, classId } = payload;
 
@@ -314,17 +335,23 @@ const deleteFeeType = async (id: string) => {
   return result.name;
 };
 
-const getAllfeeType = async () => {
+const getAllfeeType = async (classId?: string) => {
   return await prisma.feeType.findMany({
     include: {
       class: true,
     },
+    where: classId
+      ? {
+          OR: [{ classId: classId }, { classId: null }],
+        }
+      : {},
   });
 };
 
 export const FeeServices = {
   createFee,
   getAllFee,
+  paidFees,
   myFee,
   createFeeType,
   deleteFeeType,

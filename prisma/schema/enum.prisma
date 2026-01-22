@@ -42,6 +42,9 @@ enum FeeCategory {
   TUITION
   EXAM
   TRANSPORT
+  PICNIC
+  SPORTS
+  CULTURAL
   LAB
   OTHER
 }

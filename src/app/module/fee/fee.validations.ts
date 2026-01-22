@@ -1,17 +1,20 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const createFeeTypeSchema = z.object({
   name: z.string().min(1),
   amount: z.number().nonnegative(),
   category: z.enum([
-    "ADMISSION",
-    "SESSION",
-    "MONTHLY",
-    "TUITION",
-    "EXAM",
-    "TRANSPORT",
-    "LAB",
-    "OTHER",
+    'ADMISSION',
+    'SESSION',
+    'MONTHLY',
+    'TUITION',
+    'EXAM',
+    'TRANSPORT',
+    'PICNIC',
+    'SPORTS',
+    'CULTURAL',
+    'LAB',
+    'OTHER',
   ]),
   isMonthly: z.boolean().optional().default(false),
 });
