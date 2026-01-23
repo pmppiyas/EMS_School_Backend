@@ -59,9 +59,27 @@ const getScheduleByDay = catchAsync(
     });
   }
 );
+
+const getStudentRoutine = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ScheduleServices.getStudentRoutine(
+      req.user?.id as string,
+      req.params.day
+    );
+    console.log(result);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Student routine retrieved successfully',
+      data: result,
+    });
+  }
+);
+
 export const ScheduleController = {
   assignClassSchedule,
   getAllSchedules,
   mySchedules,
   getScheduleByDay,
+  getStudentRoutine,
 };

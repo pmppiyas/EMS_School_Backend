@@ -17,4 +17,10 @@ router.get(
 
 router.get('/:day', ScheduleController.getScheduleByDay);
 
+router.get(
+  '/student/:day',
+  checkAuth(Role.STUDENT),
+  ScheduleController.getStudentRoutine
+);
+
 export const scheduleRouter = router;

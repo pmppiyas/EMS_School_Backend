@@ -114,26 +114,88 @@ const getScheduleByDay = async (day: string) => {
     },
   });
 
-  const groupedByClass = schedules.reduce((acc, schedule) => {
-    const classId = schedule.class.id;
+  const groupedByClass = schedules.reduce(
+    (acc, schedule) => {
+      const classId = schedule.class.id;
 
-    if (!acc[classId]) {
-      acc[classId] = {
-        class: schedule.class,
-        schedules: [],
-      };
-    }
+      if (!acc[classId]) {
+        acc[classId] = {
+          class: schedule.class,
+          schedules: [],
+        };
+      }
 
-    acc[classId].schedules.push({
-      classTime: schedule.classTime,
-      teacher: schedule.teacher,
-      subject: schedule.subject,
-    });
+      acc[classId].schedules.push({
+        classTime: schedule.classTime,
+        teacher: schedule.teacher,
+        subject: schedule.subject,
+      });
 
-    return acc;
-  }, {} as Record<string, any>);
+      return acc;
+    },
+    {} as Record<string, any>
+  );
 
   return Object.values(groupedByClass);
+};
+
+const getStudentRoutine = async (userId: string, day: string) => {
+  const student = await prisma.student.findUnique({
+    where: {
+      userId,
+    },
+    select: {
+      classId: true,
+      class: { select: { name: true } },
+      id: true,
+    },
+  });
+
+  if (!student) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Student not found');
+  }
+
+  if (!student.classId) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Student class not found');
+  }
+
+  if (!student.class) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Student class not found');
+  }
+
+  const schedules = await prisma.classSchedule.findMany({
+    where: {
+      classId: student.classId,
+      day,
+    },
+    include: {
+      subject: { select: { name: true } },
+      teacher: {
+        select: { firstName: true, lastName: true, phoneNumber: true },
+      },
+      classTime: { select: { period: true, startTime: true, endTime: true } },
+    },
+    orderBy: {
+      classTime: {
+        period: 'asc',
+      },
+    },
+  });
+
+  return {
+    day: day,
+    class: student.class.name,
+    slots: schedules
+      .filter((s) => s.classTime !== null)
+      .map((s) => ({
+        period: s.classTime!.period,
+        subjectName: s.subject.name,
+        teacherName: `${s.teacher.firstName} ${s.teacher.lastName}`,
+        teacherNumber: s.teacher.phoneNumber,
+        startTime: s.classTime!.startTime,
+        endTime: s.classTime!.endTime,
+      })),
+  };
 };
 
 export const ScheduleServices = {
@@ -141,4 +203,5 @@ export const ScheduleServices = {
   getAllSchedules,
   mySchedules,
   getScheduleByDay,
+  getStudentRoutine,
 };
