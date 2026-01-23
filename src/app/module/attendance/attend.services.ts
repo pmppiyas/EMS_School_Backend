@@ -1,8 +1,8 @@
 import { StatusCodes } from 'http-status-codes';
 import prisma from '../../config/prisma';
 import { AppError } from '../../utils/appError';
-import { Role } from '../user/user.interface';
 import { IAttendStatus } from './attend.interface';
+import { allMonths } from '../../Constant/page';
 
 const markAttendance = async (
   payload: {
@@ -307,6 +307,67 @@ const getStudentAttendance = async (classId?: string, date?: string) => {
   };
 };
 
+const getAttendanceByUser = async (
+  userId: string,
+  monthName: string,
+  year: string
+) => {
+  const monthIndex = allMonths.indexOf(monthName.toUpperCase());
+  if (monthIndex === -1) return null;
+
+  const yearNum = Number(year);
+  const startDate = new Date(yearNum, monthIndex, 1);
+  const endDate = new Date(yearNum, monthIndex + 1, 1);
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      attendances: {
+        where: {
+          createdAt: { gte: startDate, lt: endDate },
+        },
+      },
+    },
+  });
+
+  if (!user) return null;
+
+  const attendanceMap = new Map();
+  user.attendances.forEach((att) => {
+    const dateStr = att.createdAt.toISOString().split('T')[0];
+    attendanceMap.set(dateStr, att);
+  });
+
+  const daysInMonth = new Date(yearNum, monthIndex + 1, 0).getDate();
+  const allDaysList: any[] = [];
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const currentFullDate = new Date(yearNum, monthIndex, day + 1)
+      .toISOString()
+      .split('T')[0];
+
+    const existingAtt = attendanceMap.get(currentFullDate);
+
+    allDaysList.push({
+      date: currentFullDate,
+      dayNumber: day,
+      status: existingAtt?.status || 'N/A',
+      inTime: existingAtt?.inTime || '--:--',
+      outTime: existingAtt?.outTime || '--:--',
+      id: existingAtt?.id || null,
+    });
+  }
+
+  return {
+    month: monthName,
+    year: year,
+    records: {
+      total: allDaysList.length,
+      list: allDaysList,
+    },
+  };
+};
+
 const generateDailyAttendance = async () => {
   const BDT_OFFSET_HOURS = 6;
   const nowUTC = new Date();
@@ -360,4 +421,5 @@ export const AttendServices = {
   getTeacherAttendance,
   generateDailyAttendance,
   getStudentAttendance,
+  getAttendanceByUser,
 };

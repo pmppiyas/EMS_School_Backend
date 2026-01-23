@@ -19,7 +19,11 @@ router.get(
   ResultController.getAllResults
 );
 
-router.get('/my', checkAuth(Role.STUDENT), ResultController.getMyResults);
+router.get(
+  '/student/:year/:term',
+  checkAuth(Role.STUDENT),
+  ResultController.getMyResults
+);
 router.patch(
   '/:id',
   checkAuth(Role.TEACHER, Role.ADMIN),

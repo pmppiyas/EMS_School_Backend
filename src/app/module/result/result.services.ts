@@ -112,7 +112,7 @@ const getAllResults = async (classId: string, term: string, year: number) => {
   return resultFormation(results);
 };
 
-const myResults = async (email: string) => {
+const myResults = async (email: string, year: number, term: string) => {
   const student = await prisma.student.findUniqueOrThrow({
     where: {
       email,
@@ -125,6 +125,8 @@ const myResults = async (email: string) => {
   const results = await prisma.result.findMany({
     where: {
       studentId: student.id,
+      year,
+      term,
     },
     select: {
       student: {

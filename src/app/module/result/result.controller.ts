@@ -57,7 +57,11 @@ const getAllResults = catchAsync(
 
 const getMyResults = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ResultServices.myResults(req.user?.email as string);
+    const result = await ResultServices.myResults(
+      req.user?.email as string,
+      Number(req.params.year),
+      req.params.term
+    );
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

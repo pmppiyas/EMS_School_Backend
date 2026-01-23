@@ -52,8 +52,26 @@ const getStudnetAttendance = catchAsync(
   }
 );
 
+const getAttendanceByUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await AttendServices.getAttendanceByUser(
+      req?.user?.id as string,
+      req.params.month,
+      req.params.year
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Self attendance retrieved successfully',
+      data: result,
+    });
+  }
+);
+
 export const AttendController = {
   markAttendance,
   getTeacherAttendance,
   getStudnetAttendance,
+  getAttendanceByUser,
 };

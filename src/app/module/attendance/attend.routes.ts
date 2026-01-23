@@ -22,4 +22,10 @@ router.get(
   AttendController.getStudnetAttendance
 );
 
+router.get(
+  '/my/:month/:year',
+  checkAuth(...Object.values(Role)),
+  AttendController.getAttendanceByUser
+);
+
 export const attendRoutes = router;

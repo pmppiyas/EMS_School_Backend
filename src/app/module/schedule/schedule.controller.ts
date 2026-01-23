@@ -66,7 +66,7 @@ const getStudentRoutine = catchAsync(
       req.user?.id as string,
       req.params.day
     );
-    console.log(result);
+
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
