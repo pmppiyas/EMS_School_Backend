@@ -49,6 +49,6 @@
     "zod": "^4.1.12"
   },
   "prisma": {
-    "schema": "./prisma/schema/"
+    "schema": "prisma/schema/schema.prisma"
   }
 }

@@ -5,13 +5,13 @@ import { checkAuth } from '../../middleware/checkAuth';
 import { validateRequest } from '../../middleware/validateRequest';
 import { UserController } from './user.controller';
 import { Role } from './user.interface';
-
 import {
   createAdminZodSchema,
   createStudentZodSchema,
   createTeacherZodSchema,
   userStatusChangeValidation,
 } from './user.validation';
+
 const upload = multer();
 
 const router = Router();
@@ -35,7 +35,7 @@ router.post(
 
 router.post(
   '/create_teacher',
-  // checkAuth(Role.ADMIN),
+  checkAuth(Role.ADMIN),
   multerUpload.single('photo'),
   validateRequest(createTeacherZodSchema),
   UserController.createTeacher
@@ -48,5 +48,12 @@ router.put(
 );
 
 router.get('/me', checkAuth(...Object.values(Role)), UserController.getMe);
+
+router.patch(
+  '/update-me',
+  checkAuth(...Object.values(Role)),
+  multerUpload.single('photo'),
+  UserController.updateMe
+);
 
 export const userRoutes = router;

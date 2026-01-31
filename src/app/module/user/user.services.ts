@@ -167,56 +167,106 @@ const changeUserStatus = async (id: string, status: UserStatus) => {
 
 const getMe = async (user: JwtPayload) => {
   const role = user.role.toUpperCase();
-  switch (role) {
-    case 'STUDENT':
-      return await prisma.user.findUnique({
-        where: { email: user.email },
-        select: {
-          student: {
-            include: {
-              user: true,
-              class: true,
-              feePayments: true,
-              results: true,
-              studentSubjects: true,
-            },
-          },
-        },
-      });
 
-    case 'TEACHER':
-      return await prisma.user.findUnique({
-        where: { email: user.email },
-        select: {
-          teacher: {
-            include: {
-              user: {
-                select: {
-                  needPasswordChange: true,
-                  status: true,
-                },
-              },
-              classSchedules: true,
-            },
-          },
+  const userData = await prisma.user.findUnique({
+    where: { email: user.email },
+    include: {
+      student: {
+        include: {
+          class: true,
+          feePayments: true,
+          results: true,
+          studentSubjects: true,
         },
-      });
-
-    case 'ADMIN':
-      return await prisma.user.findUnique({
-        where: { email: user.email },
-        select: {
-          admin: true,
-          email: true,
-          role: true,
+      },
+      teacher: {
+        include: {
+          classSchedules: true,
         },
-      });
+      },
+      admin: true,
+    },
+  });
 
-    default:
-      return await prisma.user.findUnique({
-        where: { email: user.email },
-      });
+  if (!userData) return null;
+
+  let profileData = {};
+
+  if (role === 'STUDENT' && userData.student) {
+    profileData = { ...userData.student };
+  } else if (role === 'TEACHER' && userData.teacher) {
+    profileData = { ...userData.teacher };
+  } else if (role === 'ADMIN' && userData.admin) {
+    profileData = { ...userData.admin };
   }
+
+  return {
+    ...profileData,
+    email: userData.email,
+    role: userData.role,
+    status: userData.status,
+    needPasswordChange: userData.needPasswordChange,
+  };
+};
+
+const updateMe = async (user: JwtPayload, req: Request) => {
+  const role = user.role.toUpperCase();
+  const email = user.email;
+  const payload = req.body;
+
+  const userData = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      student: true,
+      teacher: true,
+      admin: true,
+    },
+  });
+
+  if (!userData) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  let updatedProfile = {};
+
+  if (role === 'STUDENT' && userData.student) {
+    updatedProfile = await prisma.student.update({
+      where: { id: userData.student.id },
+      data: {
+        ...payload,
+        dateOfBirth: payload.dateOfBirth
+          ? new Date(payload.dateOfBirth)
+          : userData.student.dateOfBirth,
+        roll: payload.roll ? Number(payload.roll) : userData.student.roll,
+      },
+    });
+  } else if (role === 'TEACHER' && userData.teacher) {
+    updatedProfile = await prisma.teacher.update({
+      where: { id: userData.teacher.id },
+      data: {
+        ...payload,
+        dateOfBirth: payload.dateOfBirth
+          ? new Date(payload.dateOfBirth)
+          : userData.teacher.dateOfBirth,
+      },
+    });
+  } else if (role === 'ADMIN' && userData.admin) {
+    updatedProfile = await prisma.admin.update({
+      where: { id: userData.admin.id },
+      data: payload,
+    });
+  } else {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'Invalid role or profile missing'
+    );
+  }
+
+  return {
+    ...updatedProfile,
+    email: userData.email,
+    role: userData.role,
+  };
 };
 
 export const UserServices = {
@@ -226,4 +276,5 @@ export const UserServices = {
   createTeacher,
   changeUserStatus,
   getMe,
+  updateMe,
 };

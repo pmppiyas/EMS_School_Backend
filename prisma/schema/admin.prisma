@@ -2,6 +2,7 @@ model Admin {
   id          String   @id @default(uuid())
   firstName   String
   lastName    String
+  photo       String?
   email       String   @unique
   phoneNumber String?
   address     String?

@@ -86,6 +86,19 @@ const getMe = catchAsync(
   }
 );
 
+const updateMe = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserServices.updateMe(req.user as JwtPayload, req);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Profile updated successfully',
+      data: result,
+    });
+  }
+);
+
 export const UserController = {
   getAllUser,
   createStudent,
@@ -93,4 +106,5 @@ export const UserController = {
   createTeacher,
   changeUserStatus,
   getMe,
+  updateMe,
 };
