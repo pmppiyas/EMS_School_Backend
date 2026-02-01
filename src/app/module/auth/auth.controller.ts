@@ -80,7 +80,6 @@ const refreshToken = catchAsync(
 );
 
 
-
 const changePassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const authUser = req.user as JwtPayload;
@@ -105,10 +104,32 @@ const changePassword = catchAsync(
 );
 
 
+
+const changeEmail = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const authUser = req.user as JwtPayload;
+    const { newEmail } = req.body;
+
+    const result = await AuthServices.changeEmail(authUser, newEmail);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Email updated successfully',
+      data: {
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      },
+    });
+  }
+);
+
+
 export const AuthController = {
   crdLogin,
   getMe,
   logout,
   refreshToken,
-  changePassword
+  changePassword,
+  changeEmail
 };

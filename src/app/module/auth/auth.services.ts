@@ -7,7 +7,6 @@ import { AppError } from "../../utils/appError";
 import { UserStatus } from "../user/user.interface";
 import { ILoginPayload } from "./auth.interface";
 import { env } from '../../config/env';
-import { date } from 'zod';
 import { JwtPayload } from 'jsonwebtoken';
 
 const crdLogin = async (payload: ILoginPayload) => {
@@ -105,7 +104,6 @@ const refreshToken = async (token: string) => {
 };
 
 
-
 const changePassWord = async (
   authUser: JwtPayload,
   targetUserId: string,
@@ -159,9 +157,72 @@ const changePassWord = async (
 };
 
 
+const changeEmail = async (authUser: JwtPayload, newEmail: string) => {
+
+  const isEmailTaken = await prisma.user.findUnique({
+    where: { email: newEmail },
+  });
+
+  if (isEmailTaken) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Email already in use");
+  }
+
+
+   const result = await prisma.$transaction(async (tx) => {
+
+  const updatedUser = await tx.user.update({
+    where: { id: authUser.id },
+    data: { email: newEmail },
+  });
+
+
+  switch (updatedUser.role) {
+    case "ADMIN":
+      await tx.admin.update({
+        where: { email: authUser.email },
+        data: { email: newEmail },
+      });
+      break;
+
+    case "TEACHER":
+      await tx.teacher.update({
+        where: { email: authUser.email },
+        data: { email: newEmail },
+      });
+      break;
+
+    case "STUDENT":
+      await tx.student.update({
+        where: { email: authUser.email },
+        data: { email: newEmail },
+      });
+      break;
+
+    default:
+      throw new AppError(StatusCodes.BAD_REQUEST, "Invalid user role for email update");
+  }
+
+  return updatedUser;
+    });
+
+  const { accessToken, refreshToken } = await jwtTokenGen({
+    id: result.id,
+    email: result.email,
+    role: result.role,
+  });
+
+  return {
+    accessToken,
+    refreshToken,
+  };
+};
+
+
+
 export const AuthServices = {
   crdLogin,
   getMe,
   refreshToken,
-  changePassWord
+  changePassWord,
+  changeEmail,
 };
