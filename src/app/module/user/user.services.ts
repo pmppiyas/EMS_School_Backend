@@ -13,7 +13,6 @@ import {
 } from './user.interface';
 import { Gender } from '@prisma/client';
 import { JwtPayload } from 'jsonwebtoken';
-import { tr } from 'zod/locales';
 
 const getAllUser = async () => {
   const user = await prisma.user.findMany();

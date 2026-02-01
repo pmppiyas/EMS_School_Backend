@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.services';
+import { JwtPayload } from 'jsonwebtoken';
 
 const crdLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -78,9 +79,36 @@ const refreshToken = catchAsync(
   }
 );
 
+
+
+const changePassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const authUser = req.user as JwtPayload;
+    const { oldPassword, newPassword, targetUserId } = req.body;
+
+    const userIdToUpdate = targetUserId || authUser.id;
+
+    const result = await AuthServices.changePassWord(
+      authUser,
+      userIdToUpdate,
+      oldPassword,
+      newPassword
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Password updated successfully',
+      data: result,
+    });
+  }
+);
+
+
 export const AuthController = {
   crdLogin,
   getMe,
   logout,
   refreshToken,
+  changePassword
 };
