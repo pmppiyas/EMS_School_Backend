@@ -28,7 +28,20 @@ const teacherMeta = catchAsync(
   }
 );
 
+const feesMeta = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await MetaServices.feesMeta();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: `Fees meta retrieved successfully `,
+      data: result,
+    });
+  }
+);
+
 export const MetaController = {
   studentMeta,
   teacherMeta,
+  feesMeta,
 };

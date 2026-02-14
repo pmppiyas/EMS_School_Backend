@@ -76,7 +76,7 @@ const allRoutes: routerArgs[] = [
     route: diaryRoutes,
   },
   {
-    path: 'meta',
+    path: '/meta',
     route: metaRoutes,
   },
 ];

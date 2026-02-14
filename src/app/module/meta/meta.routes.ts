@@ -7,4 +7,6 @@ router.get('/student/:id', MetaController.studentMeta);
 
 router.get('/teacher/:id', MetaController.teacherMeta);
 
+router.get('/all-fees', MetaController.feesMeta);
+
 export const metaRoutes = router;
