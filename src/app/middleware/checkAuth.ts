@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import prisma from "../config/prisma";
-import { verifyToken } from "../helper/verifyToken";
-import { AppError } from "../utils/appError";
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import prisma from '../config/prisma';
+import { verifyToken } from '../helper/verifyToken';
+import { AppError } from '../utils/appError';
 
 export const checkAuth = (...roles: string[]) => {
   return async (
@@ -12,16 +12,16 @@ export const checkAuth = (...roles: string[]) => {
   ) => {
     try {
       const accessToken =
-        req.cookies["accessToken"] || req.headers.authorization?.split(" ")[1];
+        req.cookies['accessToken'] || req.headers.authorization?.split(' ')[1];
 
       if (!accessToken) {
-        throw new AppError(StatusCodes.FORBIDDEN, "No Token Received");
+        throw new AppError(StatusCodes.FORBIDDEN, 'No Token Received');
       }
 
       const decoded = verifyToken(accessToken);
 
       if (!roles.includes(decoded.role)) {
-        throw new AppError(403, "You are not permitted for this route");
+        throw new AppError(403, 'You are not permitted for this route');
       }
 
       const isUserExist = await prisma.user.findUnique({
@@ -32,11 +32,11 @@ export const checkAuth = (...roles: string[]) => {
       });
 
       if (!isUserExist) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "User does not exist");
+        throw new AppError(StatusCodes.BAD_REQUEST, 'User does not exist');
       }
 
-      if (isUserExist.status === "SUSPENDED") {
-        throw new AppError(StatusCodes.BAD_REQUEST, "User is suspended");
+      if (isUserExist.status === 'SUSPENDED') {
+        throw new AppError(StatusCodes.BAD_REQUEST, 'User is suspended');
       }
 
       req.user = decoded;

@@ -16,4 +16,4 @@ export interface IFeeType {
   classId?: string;
 }
 
-export type ITerm = 'FIRST' | 'SECOND' | 'THIRD' | 'FINAL';
+export type ITerm = 'MONTHLY' | 'FIRST' | 'SECOND' | 'THIRD' | 'FINAL';

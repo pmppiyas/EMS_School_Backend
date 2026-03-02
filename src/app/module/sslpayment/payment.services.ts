@@ -1,11 +1,12 @@
-import axios from "axios";
-import { StatusCodes } from "http-status-codes";
-import { env } from "../../config/env";
-import prisma from "../../config/prisma";
-import { AppError } from "../../utils/appError";
-import { generateTransactionId } from "../../utils/generateTransactionId";
-import { IUser } from "../user/user.interface";
-import { IPayment } from "./payment.interface";
+import axios from 'axios';
+import { StatusCodes } from 'http-status-codes';
+import { env } from '../../config/env';
+import prisma from '../../config/prisma';
+import { AppError } from '../../utils/appError';
+import { generateTransactionId } from '../../utils/generateTransactionId';
+import { IUser } from '../user/user.interface';
+import { IPayment } from './payment.interface';
+import { TERM } from '@prisma/client';
 
 const paymentInit = async (payload: IPayment, user: IUser) => {
   const { feeTypeId, term, months = [] } = payload;
@@ -15,7 +16,7 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
     where: { email: user.email },
   });
 
-  if (!student) throw new AppError(StatusCodes.NOT_FOUND, "Student not found");
+  if (!student) throw new AppError(StatusCodes.NOT_FOUND, 'Student not found');
 
   const feeType = await prisma.feeType.findUniqueOrThrow({
     where: { id: feeTypeId },
@@ -26,14 +27,14 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
   const paymentRecords = await prisma.$transaction(async (tx) => {
     const paymentRecords: any[] = [];
 
-    if (feeType.category === "MONTHLY") {
+    if (feeType.category === 'MONTHLY') {
       const monthsArray = Array.isArray(months)
         ? months
         : months
-        ? [months]
-        : [];
+          ? [months]
+          : [];
       if (!monthsArray.length)
-        throw new AppError(400, "At least one month is required!");
+        throw new AppError(400, 'At least one month is required!');
 
       const existing = await tx.feePayment.findMany({
         where: {
@@ -42,13 +43,13 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
           year,
           month: { in: monthsArray },
           payment: {
-            status: "SUCCESS",
+            status: 'SUCCESS',
           },
         },
       });
 
       if (existing.length > 0) {
-        const already = existing.map((e) => e.month).join(", ");
+        const already = existing.map((e) => e.month).join(', ');
         throw new AppError(400, `${already} already paid for ${year}`);
       }
 
@@ -62,7 +63,7 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
             paidAmount: feeType.amount,
             year,
             month: m,
-            issuedBy: "Electronically",
+            issuedBy: 'Electronically',
           },
         });
 
@@ -70,23 +71,23 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
           feePaymentId: feePayment.id,
           amount: feeType.amount,
           transactionId: monthTransactionId,
-          method: "SSL",
-          status: "PENDING",
+          method: 'SSL',
+          status: 'PENDING',
         });
       }
     }
 
-    if (feeType.category === "EXAM") {
-      if (!term) throw new AppError(400, "Term is required!");
+    if (feeType.category === 'EXAM') {
+      if (!term) throw new AppError(400, 'Term is required!');
 
       const exist = await tx.feePayment.findFirst({
         where: {
           studentId: student.id,
           feeTypeId,
           year,
-          term,
+          term: term as TERM,
           payment: {
-            status: "SUCCESS",
+            status: 'SUCCESS',
           },
         },
       });
@@ -101,8 +102,8 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
           feeTypeId,
           paidAmount: feeType.amount,
           year,
-          term,
-          issuedBy: "Electronic",
+          term: term as TERM,
+          issuedBy: 'Electronic',
         },
       });
 
@@ -110,19 +111,19 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
         feePaymentId: feePayment.id,
         amount: feeType.amount,
         transactionId,
-        method: "SSL",
-        status: "PENDING",
+        method: 'SSL',
+        status: 'PENDING',
       });
     }
 
-    if (feeType.category === "SESSION") {
+    if (feeType.category === 'SESSION') {
       const exist = await prisma.feePayment.findFirst({
         where: {
           studentId: student.id,
           feeTypeId,
           year: year,
           payment: {
-            status: "SUCCESS",
+            status: 'SUCCESS',
           },
         },
       });
@@ -137,7 +138,7 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
           feeTypeId,
           year,
           paidAmount: feeType.amount,
-          issuedBy: "Electronic",
+          issuedBy: 'Electronic',
         },
       });
 
@@ -145,8 +146,8 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
         feePaymentId: feePayment.id,
         amount: feeType.amount,
         transactionId,
-        method: "SSL",
-        status: "PENDING",
+        method: 'SSL',
+        status: 'PENDING',
       });
     }
 
@@ -160,13 +161,13 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
     0
   );
 
-  const allTransIds = paymentRecords.map((p) => p.transactionId).join(",");
+  const allTransIds = paymentRecords.map((p) => p.transactionId).join(',');
 
   const sslData = {
     store_id: env.SSL.STORE_ID,
     store_passwd: env.SSL.STORE_PASS,
     total_amount: totalAmount,
-    currency: "BDT",
+    currency: 'BDT',
 
     tran_id: allTransIds,
 
@@ -174,24 +175,24 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
     fail_url: `${env.SSL.FAIL_BACKEND_URL}?tran_id=${allTransIds}`,
     cancel_url: `${env.SSL.CANCEL_BACKEND_URL}?tran_id=${allTransIds}`,
 
-    product_name: "School Fee Payment",
-    product_category: "Education",
-    product_profile: "general",
-    shipping_method: "N/A",
+    product_name: 'School Fee Payment',
+    product_category: 'Education',
+    product_profile: 'general',
+    shipping_method: 'N/A',
     cus_name: `${student.firstName} ${student.lastName}`,
     cus_email: student.email,
-    cus_add1: student.address ?? "N/A",
-    cus_city: "Dhaka",
-    cus_country: "Bangladesh",
-    cus_phone: student.phoneNumber ?? "N/A",
+    cus_add1: student.address ?? 'N/A',
+    cus_city: 'Dhaka',
+    cus_country: 'Bangladesh',
+    cus_phone: student.phoneNumber ?? 'N/A',
   };
 
   const res = await axios({
-    method: "POST",
+    method: 'POST',
     url: env.SSL.PAYMENT_API,
     data: new URLSearchParams(sslData as any).toString(),
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
   });
 
@@ -199,34 +200,34 @@ const paymentInit = async (payload: IPayment, user: IUser) => {
 };
 
 const successPayment = async (query: Record<string, string>) => {
-  const ids = query.tran_id.split(",");
+  const ids = query.tran_id.split(',');
 
   return await prisma.payment.updateMany({
     where: {
       transactionId: { in: ids },
     },
-    data: { status: "SUCCESS" },
+    data: { status: 'SUCCESS' },
   });
 };
 
 const failPayment = async (query: Record<string, string>) => {
-  const ids = query.tran_id.split(",");
+  const ids = query.tran_id.split(',');
 
   return await prisma.payment.updateMany({
     where: {
       transactionId: { in: ids },
     },
-    data: { status: "FAILED" },
+    data: { status: 'FAILED' },
   });
 };
 const cancelPayment = async (query: Record<string, string>) => {
-  const ids = query.tran_id.split(",");
+  const ids = query.tran_id.split(',');
 
   return await prisma.payment.updateMany({
     where: {
       transactionId: { in: ids },
     },
-    data: { status: "CANCELED" },
+    data: { status: 'CANCELED' },
   });
 };
 export const PaymentService = {

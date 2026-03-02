@@ -14,7 +14,7 @@ CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE');
 CREATE TYPE "WeekDay" AS ENUM ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY');
 
 -- CreateEnum
-CREATE TYPE "FeeCategory" AS ENUM ('ADMISSION', 'SESSION', 'MONTHLY', 'TUITION', 'EXAM', 'TRANSPORT', 'LAB', 'OTHER');
+CREATE TYPE "FeeCategory" AS ENUM ('ADMISSION', 'SESSION', 'MONTHLY', 'TUITION', 'EXAM', 'TRANSPORT', 'PICNIC', 'SPORTS', 'CULTURAL', 'LAB', 'OTHER');
 
 -- CreateEnum
 CREATE TYPE "TERM" AS ENUM ('FIRST', 'SECOND', 'THIRD', 'FINAL');
@@ -33,6 +33,7 @@ CREATE TABLE "admins" (
     "id" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
+    "photo" TEXT,
     "email" TEXT NOT NULL,
     "phoneNumber" TEXT,
     "address" TEXT,
@@ -72,20 +73,23 @@ CREATE TABLE "subjects" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT,
-    "studentId" TEXT,
+    "classId" TEXT NOT NULL,
 
     CONSTRAINT "subjects_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Diery" (
+CREATE TABLE "diaries" (
     "id" TEXT NOT NULL,
     "classId" TEXT NOT NULL,
     "subjectId" TEXT NOT NULL,
+    "periodId" TEXT NOT NULL,
+    "teacherId" TEXT NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
     "note" TEXT NOT NULL,
+    "comment" TEXT,
 
-    CONSTRAINT "Diery_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "diaries_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -259,7 +263,7 @@ CREATE UNIQUE INDEX "attendance_id_createdAt_key" ON "attendance"("id", "created
 CREATE UNIQUE INDEX "classes_name_key" ON "classes"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "subjects_name_key" ON "subjects"("name");
+CREATE UNIQUE INDEX "subjects_name_classId_key" ON "subjects"("name", "classId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "payments_feePaymentId_key" ON "payments"("feePaymentId");
@@ -292,22 +296,34 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 ALTER TABLE "admins" ADD CONSTRAINT "admins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "attendance" ADD CONSTRAINT "attendance_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "attendance" ADD CONSTRAINT "attendance_classId_fkey" FOREIGN KEY ("classId") REFERENCES "classes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "subjects" ADD CONSTRAINT "subjects_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "students"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "attendance" ADD CONSTRAINT "attendance_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "subjects" ADD CONSTRAINT "subjects_classId_fkey" FOREIGN KEY ("classId") REFERENCES "classes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "diaries" ADD CONSTRAINT "diaries_classId_fkey" FOREIGN KEY ("classId") REFERENCES "classes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "diaries" ADD CONSTRAINT "diaries_periodId_fkey" FOREIGN KEY ("periodId") REFERENCES "classTimes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "diaries" ADD CONSTRAINT "diaries_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "subjects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "diaries" ADD CONSTRAINT "diaries_teacherId_fkey" FOREIGN KEY ("teacherId") REFERENCES "teachers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "feeTypes" ADD CONSTRAINT "feeTypes_classId_fkey" FOREIGN KEY ("classId") REFERENCES "classes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "feePayments" ADD CONSTRAINT "feePayments_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "students"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "feePayments" ADD CONSTRAINT "feePayments_feeTypeId_fkey" FOREIGN KEY ("feeTypeId") REFERENCES "feeTypes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "feePayments" ADD CONSTRAINT "feePayments_feeTypeId_fkey" FOREIGN KEY ("feeTypeId") REFERENCES "feeTypes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "feePayments" ADD CONSTRAINT "feePayments_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "students"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "payments" ADD CONSTRAINT "payments_feePaymentId_fkey" FOREIGN KEY ("feePaymentId") REFERENCES "feePayments"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -316,10 +332,10 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_feePaymentId_fkey" FOREIGN KEY (
 ALTER TABLE "notices" ADD CONSTRAINT "notices_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "results" ADD CONSTRAINT "results_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "students"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "results" ADD CONSTRAINT "results_classId_fkey" FOREIGN KEY ("classId") REFERENCES "classes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "results" ADD CONSTRAINT "results_classId_fkey" FOREIGN KEY ("classId") REFERENCES "classes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "results" ADD CONSTRAINT "results_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "students"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "results" ADD CONSTRAINT "results_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "subjects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -328,13 +344,13 @@ ALTER TABLE "results" ADD CONSTRAINT "results_subjectId_fkey" FOREIGN KEY ("subj
 ALTER TABLE "classSchedules" ADD CONSTRAINT "classSchedules_classId_fkey" FOREIGN KEY ("classId") REFERENCES "classes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "classSchedules" ADD CONSTRAINT "classSchedules_classTimeId_fkey" FOREIGN KEY ("classTimeId") REFERENCES "classTimes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "classSchedules" ADD CONSTRAINT "classSchedules_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "subjects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "classSchedules" ADD CONSTRAINT "classSchedules_teacherId_fkey" FOREIGN KEY ("teacherId") REFERENCES "teachers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "classSchedules" ADD CONSTRAINT "classSchedules_classTimeId_fkey" FOREIGN KEY ("classTimeId") REFERENCES "classTimes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "students" ADD CONSTRAINT "students_classId_fkey" FOREIGN KEY ("classId") REFERENCES "classes"("id") ON DELETE SET NULL ON UPDATE CASCADE;

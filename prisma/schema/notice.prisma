@@ -5,9 +5,8 @@ model Notice {
   pinned    Boolean? @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   createdBy String
-  user      User   @relation(fields: [createdBy], references: [id])
+  user      User     @relation(fields: [createdBy], references: [id])
 
   @@map("notices")
 }

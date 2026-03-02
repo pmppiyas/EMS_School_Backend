@@ -7,11 +7,11 @@ model User {
   status             UserStatus   @default(ACTIVE)
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
+  admin              Admin?
+  attendances        Attendance[]
+  notices            Notice[]
   student            Student?
   teacher            Teacher?
-  admin              Admin?
-  notices            Notice[]
-  attendances        Attendance[]
 
   @@map("users")
 }

@@ -79,7 +79,6 @@ const refreshToken = catchAsync(
   }
 );
 
-
 const changePassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const authUser = req.user as JwtPayload;
@@ -103,8 +102,6 @@ const changePassword = catchAsync(
   }
 );
 
-
-
 const changeEmail = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const authUser = req.user as JwtPayload;
@@ -124,12 +121,11 @@ const changeEmail = catchAsync(
   }
 );
 
-
 export const AuthController = {
   crdLogin,
   getMe,
   logout,
   refreshToken,
   changePassword,
-  changeEmail
+  changeEmail,
 };

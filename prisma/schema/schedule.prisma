@@ -1,18 +1,14 @@
 model ClassSchedule {
-  id  String @id @default(uuid())
-  day String
-
-  classId String
-  class   Class  @relation(fields: [classId], references: [id])
-
-  subjectId String
-  subject   Subject @relation(fields: [subjectId], references: [id])
-
-  teacherId String
-  teacher   Teacher @relation(fields: [teacherId], references: [id])
-
+  id          String     @id @default(uuid())
+  day         String
+  classId     String
+  subjectId   String
+  teacherId   String
   classTimeId String?
+  class       Class      @relation(fields: [classId], references: [id])
   classTime   ClassTime? @relation(fields: [classTimeId], references: [id])
+  subject     Subject    @relation(fields: [subjectId], references: [id])
+  teacher     Teacher    @relation(fields: [teacherId], references: [id])
 
   @@map("classSchedules")
 }

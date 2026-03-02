@@ -1,16 +1,16 @@
 model Diary {
-  id        String     @id @default(uuid())
+  id        String    @id @default(uuid())
   classId   String
-  class     Class?     @relation(fields: [classId], references: [id])
   subjectId String
-  subject   Subject?   @relation(fields: [subjectId], references: [id])
   periodId  String
-  period    ClassTime? @relation(fields: [periodId], references: [id])
   teacherId String
-  teacher   Teacher?   @relation(fields: [teacherId], references: [id])
   date      DateTime
   note      String
   comment   String?
+  class     Class     @relation(fields: [classId], references: [id])
+  period    ClassTime @relation(fields: [periodId], references: [id])
+  subject   Subject   @relation(fields: [subjectId], references: [id])
+  teacher   Teacher   @relation(fields: [teacherId], references: [id])
 
   @@map("diaries")
 }

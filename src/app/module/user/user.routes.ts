@@ -12,7 +12,6 @@ import {
   userStatusChangeValidation,
 } from './user.validation';
 
-const upload = multer();
 
 const router = Router();
 
@@ -28,7 +27,7 @@ router.post(
 router.post(
   '/create_admin',
   checkAuth(Role.ADMIN),
-  upload.none(),
+  multerUpload.single('photo'),
   validateRequest(createAdminZodSchema),
   UserController.createAdmin
 );

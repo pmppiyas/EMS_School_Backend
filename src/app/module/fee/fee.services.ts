@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import prisma from '../../config/prisma';
+import { TERM } from '@prisma/client';
 import { AppError } from '../../utils/appError';
 import { IUser } from '../user/user.interface';
 import { IFeeType, ITerm } from './fee.interfaces';
@@ -82,7 +83,7 @@ const createFee = async (
           studentId,
           feeTypeId,
           year: paymentYear,
-          term,
+          term: term as TERM,
         },
       });
 
@@ -99,7 +100,7 @@ const createFee = async (
           feeTypeId,
           paidAmount: feeType.amount,
           year: paymentYear,
-          term,
+          term: term as TERM,
           month: null,
           issuedBy,
         },

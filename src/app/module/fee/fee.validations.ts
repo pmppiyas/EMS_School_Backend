@@ -24,7 +24,7 @@ export const updateFeeTypeSchema = createFeeTypeSchema.partial();
 export const createPaymentSchema = z.object({
   studentId: z.string().uuid(),
   feeTypeId: z.string().uuid(),
-  month: z.number().int().min(1).max(12).optional(), // for monthly fees
+  month: z.number().int().min(1).max(12).optional(),
   year: z.number().int().min(1970).optional(),
   paidAmount: z.number().nonnegative(),
 });

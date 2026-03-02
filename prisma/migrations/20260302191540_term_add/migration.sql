@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "TERM" ADD VALUE 'MONTHLY';

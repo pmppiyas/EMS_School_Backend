@@ -11,13 +11,13 @@ model Student {
   roll            Int
   gender          Gender
   userId          String           @unique
-  user            User             @relation(fields: [userId], references: [id])
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  studentSubjects StudentSubject[]
-  results         Result[]
   feePayments     FeePayment[]
+  results         Result[]
+  studentSubjects StudentSubject[]
   class           Class?           @relation(fields: [classId], references: [id])
+  user            User             @relation(fields: [userId], references: [id])
 
   @@map("students")
 }
@@ -27,9 +27,8 @@ model StudentSubject {
   studentId String
   subjectId String
   dayOfWeek WeekDay
-
-  student Student @relation(fields: [studentId], references: [id])
-  subject Subject @relation(fields: [subjectId], references: [id])
+  student   Student @relation(fields: [studentId], references: [id])
+  subject   Subject @relation(fields: [subjectId], references: [id])
 
   @@unique([studentId, subjectId, dayOfWeek])
   @@map("studentSubjects")

@@ -1,13 +1,13 @@
 model Class {
   id          String          @id @default(uuid())
   name        String          @unique
-  schedules   ClassSchedule[]
-  results     Result[]
   attendances Attendance[]
-  feeTypes    FeeType[]
+  schedules   ClassSchedule[]
   diaries     Diary[]
-  subjects    Subject[]
+  feeTypes    FeeType[]
+  results     Result[]
   students    Student[]
+  subjects    Subject[]
 
   @@map("classes")
 }
@@ -16,12 +16,12 @@ model Subject {
   id              String           @id @default(uuid())
   name            String
   code            String?
+  classId         String
   schedules       ClassSchedule[]
+  diaries         Diary[]
+  results         Result[]
   studentSubjects StudentSubject[]
   class           Class            @relation(fields: [classId], references: [id])
-  classId         String
-  results         Result[]
-  diaries         Diary[]
 
   @@unique([name, classId])
   @@map("subjects")

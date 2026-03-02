@@ -1,51 +1,46 @@
 model FeeType {
-  id        String      @id @default(uuid())
+  id        String       @id @default(uuid())
   name      String
   amount    Float
   category  FeeCategory
   isMonthly Boolean
   classId   String?
   term      TERM?
-  class     Class?      @relation(fields: [classId], references: [id])
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-
-  payments FeePayment[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  payments  FeePayment[]
+  class     Class?       @relation(fields: [classId], references: [id])
 
   @@map("feeTypes")
 }
 
 model FeePayment {
-  id        String @id @default(uuid())
-  studentId String
-  feeTypeId String
-
+  id         String   @id @default(uuid())
+  studentId  String
+  feeTypeId  String
   month      String?
   year       Int?
   term       TERM?
   paidAmount Float
   paidDate   DateTime @default(now())
   issuedBy   String
-
-  student Student  @relation(fields: [studentId], references: [id])
-  feeType FeeType  @relation(fields: [feeTypeId], references: [id])
-  payment Payment?
+  feeType    FeeType  @relation(fields: [feeTypeId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
+  payment    Payment?
 
   @@map("feePayments")
 }
 
 model Payment {
-  id           String     @id @default(uuid())
-  feePaymentId String     @unique
-  feePayment   FeePayment @relation(fields: [feePaymentId], references: [id])
-
+  id            String        @id @default(uuid())
+  feePaymentId  String        @unique
   transactionId String        @unique
   amount        Float
   method        PaymentMethod @default(SSL)
   status        PaymentStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  feePayment    FeePayment    @relation(fields: [feePaymentId], references: [id])
 
   @@map("payments")
 }
