@@ -1,12 +1,12 @@
-import { NextFunction, Request, Response } from "express";
-import { env } from "../config/env";
+import { NextFunction, Request, Response } from 'express';
+import { env } from '../config/env';
 import {
   handleDuplicateError,
   handleZodValidatonError,
   prismaError,
   validationError,
-} from "../helper/errorHelper";
-import { AppError } from "../utils/appError";
+} from '../helper/errorHelper';
+import { AppError } from '../utils/appError';
 
 export const globalErrorHandler = (
   err: any,
@@ -15,7 +15,7 @@ export const globalErrorHandler = (
   next: NextFunction
 ) => {
   let statusCode = 500;
-  let message = err.message || "Something went wrong";
+  let message = err.message || 'Something went wrong';
 
   //Duplicate
   if (err.code === 11000 || err.expected) {
@@ -24,24 +24,24 @@ export const globalErrorHandler = (
     message = dupFunc.message;
   }
   // Invalid Object ID Error
-  else if (err.name === "CastError") {
-    message = "Invalid MongoDB ObjectID. Please provide valid ID.";
-  } else if (err.name === "ValidationError") {
+  else if (err.name === 'CastError') {
+    message = 'Invalid MongoDB ObjectID. Please provide valid ID.';
+  } else if (err.name === 'ValidationError') {
     validationError(err);
   }
 
   //Prisma Error
-  if (err.name === "PrismaClientKnownRequestError") {
+  if (err.name === 'PrismaClientKnownRequestError') {
     const prismaErr = prismaError(err);
     return res.status(prismaErr.statusCode).json({
       success: false,
       message: prismaErr.message,
       err,
-      stack: env.NODE_ENV === "development" ? err.stack : null,
+      stack: env.NODE_ENV === 'development' ? err.stack : null,
     });
   }
 
-  if (err.name === "ZodError") {
+  if (err.name === 'ZodError') {
     //Zod Error
     message = handleZodValidatonError(err).message;
     statusCode = handleZodValidatonError(err).statusCode;
@@ -57,6 +57,6 @@ export const globalErrorHandler = (
     success: false,
     message: message,
     err,
-    stack: env.NODE_ENV === "development" ? err.stack : null,
+    stack: env.NODE_ENV === 'development' ? err.stack : null,
   });
 };

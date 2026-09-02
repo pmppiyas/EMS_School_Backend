@@ -1,7 +1,7 @@
-import { v2 as cloudinary } from "cloudinary";
-import { env } from "./env";
+import { v2 as cloudinary } from 'cloudinary';
+import { env } from './env';
 
-// Configuration
+
 cloudinary.config({
   cloud_name: env.CLOUDINARY.CLOUD_NAME,
   api_key: env.CLOUDINARY.API_KEY,
@@ -9,4 +9,3 @@ cloudinary.config({
 });
 
 export { cloudinary };
-

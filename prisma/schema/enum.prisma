@@ -50,7 +50,6 @@ enum FeeCategory {
 }
 
 enum TERM {
-  MONTHLY
   FIRST
   SECOND
   THIRD

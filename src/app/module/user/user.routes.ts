@@ -2,7 +2,6 @@ import { Router } from 'express';
 import multer from 'multer';
 import { multerUpload } from '../../config/multer.config';
 import { checkAuth } from '../../middleware/checkAuth';
-import { validateRequest } from '../../middleware/validateRequest';
 import { UserController } from './user.controller';
 import { Role } from './user.interface';
 import {
@@ -11,7 +10,7 @@ import {
   createTeacherZodSchema,
   userStatusChangeValidation,
 } from './user.validation';
-
+import { validateRequest } from '@/middleware/validateRequest';
 
 const router = Router();
 

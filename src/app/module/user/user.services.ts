@@ -4,7 +4,6 @@ import { StatusCodes } from 'http-status-codes';
 import { env } from '../../config/env';
 import prisma from '../../config/prisma';
 import { AppError } from '../../utils/appError';
-
 import {
   createAdminInput,
   createStudentInput,

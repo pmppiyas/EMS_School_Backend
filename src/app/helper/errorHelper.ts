@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import httpStatus from "http-status-codes";
+import httpStatus from 'http-status-codes';
 
 interface errType {
   path: string;
@@ -31,7 +31,7 @@ export const handleDuplicateError = (error: any) => {
   }
 
   return {
-    message: "Duplicate value already exists",
+    message: 'Duplicate value already exists',
     statusCode: httpStatus.METHOD_FAILURE,
   };
 };
@@ -63,14 +63,14 @@ export const handleZodValidatonError = (error: any) => {
 
   const capitalizedFields = missing
     .map((item) =>
-      item ? item.charAt(0).toUpperCase() + item.slice(1) : "Field"
+      item ? item.charAt(0).toUpperCase() + item.slice(1) : 'Field'
     )
-    .join(", ");
+    .join(', ');
 
   const prefix =
-    errMode[0]?.received === "undefined"
-      ? "Missing required field"
-      : "Wrong value in";
+    errMode[0]?.received === 'undefined'
+      ? 'Missing required field'
+      : 'Wrong value in';
 
   return {
     message: `${prefix}: ${capitalizedFields}`,
@@ -95,14 +95,14 @@ export const validationError = (error: any) => {
 };
 
 export const prismaError = (err: any) => {
-  if (err.code === "P2025") {
+  if (err.code === 'P2025') {
     return {
       statusCode: httpStatus.NOT_FOUND,
-      message: `${err.meta?.modelName || "Record"} not found`,
+      message: `${err.meta?.modelName || 'Record'} not found`,
     };
   }
 
-  if (err.code === "P2002") {
+  if (err.code === 'P2002') {
     return {
       statusCode: httpStatus.CONFLICT,
       message: `Unique constraint failed on the field: ${err.meta?.target}`,
@@ -111,6 +111,6 @@ export const prismaError = (err: any) => {
 
   return {
     statusCode: 500,
-    message: "Prisma Client Error",
+    message: 'Prisma Client Error',
   };
 };
